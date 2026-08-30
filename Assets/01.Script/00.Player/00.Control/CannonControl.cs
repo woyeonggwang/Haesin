@@ -16,6 +16,18 @@ public class CannonControl : MonoBehaviour
     public ShotPos[] shotPos;
     public bool onTarget;
     public float initialSpeed = 20f; // �ӵ��� ���� ����
+    [Header("좌우 판단")]
+    [Tooltip("기준이 되는 선체. 비우면 이 오브젝트를 쓴다.")]
+    public Transform shipTransform;
+    [Tooltip("좌현(왼쪽) 발사 지점의 shotPos 인덱스.")]
+    public int portShotIndex = 0;
+    [Tooltip("우현(오른쪽) 발사 지점의 shotPos 인덱스.")]
+    public int starboardShotIndex = 1;
+    [Tooltip("선체 정면/후면을 겨눌 때 좌우가 깜빡이는 것을 막는 여유 구간. 이 안에서는 직전 방향을 유지한다.")]
+    [Range(0f, 0.5f)]
+    public float sideDeadzone = 0.08f;
+    private bool _hasSide = false;
+
     private void Start()
     {
         shotMod = false;
@@ -24,21 +36,14 @@ public class CannonControl : MonoBehaviour
 
     private void Update()
     {
+        // 인스펙터에서 현재 어느 쪽을 겨누는지 보이도록 매 프레임 갱신한다.
+        int sideIndex = GetFiringSideIndex();
+
         if (shotMod)
         {
-            if (sideMod)
+            if (Input.GetMouseButtonDown(0))
             {
-                if(Input.GetMouseButtonDown(0))
-                {
-                    StartCoroutine(ShotPlay(0));
-                }
-            }
-            else
-            {
-                if (Input.GetMouseButtonDown(0))
-                {
-                    StartCoroutine(ShotPlay(1));
-                }
+                StartCoroutine(ShotPlay(sideIndex));
             }
         }
         if (Input.GetKeyDown(KeyCode.A))
@@ -47,6 +52,41 @@ public class CannonControl : MonoBehaviour
         }
         
     }
+    /// <summary>
+    /// 지금 겨누는 방향이 선체의 어느 쪽인지 판단해 발사 지점 인덱스를 돌려준다.
+    /// 예전에는 카메라의 쿼터니언 y 성분(transform.rotation.y)만 봤는데,
+    /// 그것은 각도가 아니라 sin(yaw/2) 이고 선체 기준도 아니어서
+    /// 배가 180도 돌면 좌우가 뒤집혔다.
+    /// 여기서는 선체의 오른쪽 축과 조준 방향을 내적해 판단하므로 선수 방향과 무관하게 항상 맞는다.
+    /// </summary>
+    public int GetFiringSideIndex()
+    {
+        Transform ship = shipTransform != null ? shipTransform : transform;
+
+        Vector3 aim = mainCamera != null ? mainCamera.transform.forward : ship.forward;
+        aim.y = 0f;
+        if (aim.sqrMagnitude < 0.0001f) aim = ship.forward;
+        aim.Normalize();
+
+        Vector3 shipRight = ship.right;
+        shipRight.y = 0f;
+        shipRight.Normalize();
+
+        // 내적이 음수면 조준 방향이 선체의 왼쪽 = 좌현
+        float dot = Vector3.Dot(shipRight, aim);
+
+        // 선체 축과 거의 나란하면 좌우가 원리적으로 없다.
+        // 그대로 부호로 판단하면 정면을 겨눌 때 좌우가 매 프레임 뒤집히므로,
+        // 여유 구간 안에서는 직전 방향을 유지한다.
+        if (!_hasSide || Mathf.Abs(dot) >= sideDeadzone)
+        {
+            sideMod = dot < 0f;
+            _hasSide = true;
+        }
+
+        return sideMod ? portShotIndex : starboardShotIndex;
+    }
+
     public void FireFront(Transform firePoint)
     {
         // ī�޶� ���� �߻� ����

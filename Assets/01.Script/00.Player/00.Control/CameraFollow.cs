@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Transform target;         // µû¶ó°¥ ´ë»ó (Player)
-    public Vector3 offset = new Vector3(0, 2, -5); // Ä«¸Þ¶ó À§Ä¡ ¿ÀÇÁ¼Â
-    public float rotationSpeed = 5f; // È¸Àü ¼Óµµ
+    public Transform target;         // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (Player)
+    public Vector3 offset = new Vector3(0, 2, -5); // Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    public float rotationSpeed = 5f; // È¸ï¿½ï¿½ ï¿½Óµï¿½
     public CannonControl cannon;
     private float fovValue;
     private Camera cam;
@@ -32,7 +31,7 @@ public class CameraFollow : MonoBehaviour
         {
             Cursor.visible = !Cursor.visible;
         }
-        cannon.sideMod = transform.rotation.y < 0;
+        // ì¢Œìš° íŒë‹¨ì€ CannonControl.GetFiringSideIndex() ê°€ ì„ ì²´ ê¸°ì¤€ìœ¼ë¡œ ì²˜ë¦¬í•œë‹¤.
         cam.fieldOfView = fovValue;
         if (fovLerpVal < 1f)
         {
@@ -51,21 +50,21 @@ public class CameraFollow : MonoBehaviour
             cannon.shotMod = true;
             Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
 
-            // RaycastHit¿¡ Ãæµ¹ÇÑ Á¤º¸¸¦ ÀúÀå
+            // RaycastHitï¿½ï¿½ ï¿½æµ¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             if (Physics.Raycast(ray, out hitInfo))
             {
-                // Ãæµ¹ÇÑ ¿ÀºêÁ§Æ® Ãâ·Â
-                Debug.Log("Ãæµ¹ÇÑ ¿ÀºêÁ§Æ®: " + hitInfo.collider.name);
+                // ï¿½æµ¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½
+                Debug.Log("ï¿½æµ¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®: " + hitInfo.collider.name);
 
-                // Ãæµ¹ÇÑ ÄÝ¶óÀÌ´õ °´Ã¼ °¡Á®¿À±â
+                // ï¿½æµ¹ï¿½ï¿½ ï¿½Ý¶ï¿½ï¿½Ì´ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 Collider collided = hitInfo.collider;
                 cannon.target=collided.transform;
-                // ¿øÇÏ´Â ÀÛ¾÷ ¼öÇà °¡´É
-                // ¿¹: collided.GetComponent<YourComponent>() µî
+                // ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Û¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+                // ï¿½ï¿½: collided.GetComponent<YourComponent>() ï¿½ï¿½
             }
             else
             {
-                Debug.Log("Ãæµ¹ÇÑ ¿ÀºêÁ§Æ®°¡ ¾ø½À´Ï´Ù.");
+                Debug.Log("ï¿½æµ¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
             }
         }
         if (Input.GetMouseButtonUp(1))
@@ -80,12 +79,12 @@ public class CameraFollow : MonoBehaviour
     {
         if (target == null) return;
 
-        // ¸¶¿ì½º ÀÔ·ÂÀ¸·Î È¸Àü°ª Á¶Á¤
+        // ï¿½ï¿½ï¿½ì½º ï¿½Ô·ï¿½ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         yaw += Input.GetAxis("Mouse X") * rotationSpeed;
         pitch -= Input.GetAxis("Mouse Y") * rotationSpeed;
-        pitch = Mathf.Clamp(pitch, -30f, 60f); // À§¾Æ·¡ Á¦ÇÑ
+        pitch = Mathf.Clamp(pitch, -30f, 60f); // ï¿½ï¿½ï¿½Æ·ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-        // È¸Àü Àû¿ë
+        // È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
         Vector3 desiredPosition = target.position + rotation * offset;
 

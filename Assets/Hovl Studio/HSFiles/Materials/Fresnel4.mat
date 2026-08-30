@@ -21,22 +21,28 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Fresnel4
-  m_Shader: {fileID: -6465566751694194690, guid: 44a7fe6696310d34f8acd987b267fc17, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 7afe5d155291e974c9b8f7f85979e314, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _ENABLE_FOG_ON_TRANSPARENT
   - _SURFACE_TYPE_TRANSPARENT
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _DOUBLESIDED_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
+  m_DoubleSidedGI: 1
   m_CustomRenderQueue: 3000
   stringTagMap:
+    MotionVector: User
     RenderType: Transparent
   disabledShaderPasses:
   - DepthOnly
   - SHADOWCASTER
   - MOTIONVECTORS
+  - TransparentDepthPrepass
+  - TransparentDepthPostpass
+  - TransparentBackface
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -159,30 +165,46 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AddPrecomputedVelocity: 0
     - _Addnoise: 0
     - _AlphaClip: 0
+    - _AlphaCutoffEnable: 0
+    - _AlphaDstBlend: 1
+    - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
     - _BackFresnel: -4
     - _BackFresnelEmission: 1
     - _Blend: 2
+    - _BlendMode: 1
     - _BumpScale: 1
     - _CastShadows: 0
     - _ColorPosition: 0.35
+    - _ConservativeDepthOffsetEnable: 0
     - _Cull: 0
+    - _CullMode: 0
+    - _CullModeForward: 0
     - _Cutoff: 0.5
+    - _DepthOffsetEnable: 0
     - _Depthpower: 20
     - _Desaturation: 0
     - _DetailNormalMapScale: 1
     - _Dissolve: 0
     - _Distance: 10
     - _Distortionpower: 0.2
+    - _DoubleSidedEnable: 1
+    - _DoubleSidedGIMode: 0
+    - _DoubleSidedNormalMode: 2
     - _DstBlend: 1
+    - _DstBlend2: 10
     - _DstBlendAlpha: 1
     - _Emission: 3
     - _Emissionmult: 342
     - _Emissionpower: 7
+    - _EnableBlendModePreserveSpecularLighting: 0
+    - _EnableFogOnTransparent: 1
     - _EndDistance: 2
     - _EndRound: 6
+    - _ExcludeFromTUAndAA: 0
     - _FinalEmission: 1
     - _Flowpower: 0
     - _Fresnel: 1
@@ -208,9 +230,12 @@ Material:
     - _Numberofwaves: 1
     - _OcclusionStrength: 1
     - _Opacity: 1
+    - _OpaqueCullMode: 2
     - _Parallax: 0.02
+    - _PerPixelSorting: 0
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _RenderQueueType: 3
     - _Scale: 1
     - _SeparateEmission: 2
     - _SeparateFresnel: 0
@@ -220,13 +245,29 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _Softedges: 0
     - _SpecularHighlights: 1
-    - _SrcBlend: 5
+    - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _StartDistance: 2
     - _StartRound: 6
+    - _StencilRef: 0
+    - _StencilRefDepth: 1
+    - _StencilRefDistortionVec: 4
+    - _StencilRefMV: 33
+    - _StencilWriteMask: 6
+    - _StencilWriteMaskDepth: 9
+    - _StencilWriteMaskDistortionVec: 4
+    - _StencilWriteMaskMV: 43
     - _Surface: 1
+    - _SurfaceType: 1
     - _TextureVertexPower: 0.2
     - _Texturesopacity: 1
+    - _TransparentBackfaceEnable: 0
+    - _TransparentCullMode: 2
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
+    - _TransparentSortPriority: 0
+    - _TransparentWritingMotionVec: 0
+    - _TransparentZWrite: 0
     - _UV2Tswitch: 0
     - _UVSec: 0
     - _Upopacity: 1
@@ -234,6 +275,7 @@ Material:
     - _UseCustomData: 0
     - _UseEndRound: 1
     - _UseFresnel: 0
+    - _UseShadowThreshold: 0
     - _Usecenterglow: 0
     - _Usedepth: 0
     - _Useonlycolor: 0
@@ -242,6 +284,8 @@ Material:
     - _VertexPower: 0.3
     - _VertexScale: 1
     - _ZTest: 4
+    - _ZTestDepthEqualForOpaque: 4
+    - _ZTestTransparent: 4
     - _ZWrite: 0
     - _ZWriteControl: 0
     m_Colors:
@@ -250,7 +294,8 @@ Material:
     - _BackFresnelColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DistortionSpeedXYPowerZ: {r: 0, g: 0, b: 0, a: 0}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EndPoint: {r: -10, g: 1, b: 0, a: 0}
     - _FlowSpeedXYPowerZHeightW: {r: 0.2, g: 0.2, b: 1, a: 0}
     - _FresnelColor: {r: 1, g: 1, b: 1, a: 1}
@@ -270,3 +315,19 @@ Material:
     - _WavesspeedsizeXYTwistspeedsizeZW: {r: -1, g: 0.2, b: 4, a: 0.6}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!114 &1684196910393677423
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Editor::UnityEditor.Rendering.HighDefinition.AssetVersion
+  version: 13
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 

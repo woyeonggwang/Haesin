@@ -10,12 +10,12 @@ public class CannonControl : MonoBehaviour
     private int shotCount;
     public float maxView;
     public Camera mainCamera;
-    public Transform target;               // Å¸°Ù Transform
-    public GameObject cannonBallPrefab;    // Æ÷Åº ÇÁ¸®ÆÕ
-    public float firingAngle = 60f;        // °íÁ¤ ¹ß»ç°¢ (µµ)
+    public Transform target;               // Å¸ï¿½ï¿½ Transform
+    public GameObject cannonBallPrefab;    // ï¿½ï¿½Åº ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    public float firingAngle = 60f;        // ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ç°¢ (ï¿½ï¿½)
     public ShotPos[] shotPos;
     public bool onTarget;
-    public float initialSpeed = 20f; // ¼Óµµ¸¦ ¼öÁ¤ ¼³Á¤
+    public float initialSpeed = 20f; // ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     private void Start()
     {
         shotMod = false;
@@ -49,21 +49,21 @@ public class CannonControl : MonoBehaviour
     }
     public void FireFront(Transform firePoint)
     {
-        // Ä«¸Þ¶ó ±âÁØ ¹ß»ç ¹æÇâ
+        // Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ ï¿½ï¿½ï¿½ï¿½
         Vector3 launchDir = mainCamera.transform.forward;
 
-        // Æ÷Åº »ý¼º ¹× ¹ß»ç
+        // ï¿½ï¿½Åº ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß»ï¿½
         GameObject cannonBall = Instantiate(cannonBallPrefab, firePoint.position, Quaternion.identity);
         cannonBall.SetActive(true);
         Rigidbody rb = cannonBall.GetComponent<Rigidbody>();
         rb.useGravity = true;
 
-        // ÀÏÁ¤ÇÑ ¼Óµµ·Î ¹ß»ç (Á÷¼± ¹ß»ç + Áß·Â Àû¿ë)
-        rb.velocity = launchDir.normalized * initialSpeed;
-        //// Ä«¸Þ¶ó ±âÁØ ¸ñÇ¥ ÁöÁ¡ °è»ê
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ß»ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ + ï¿½ß·ï¿½ ï¿½ï¿½ï¿½ï¿½)
+        rb.linearVelocity = launchDir.normalized * initialSpeed;
+        //// Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
         //Vector3 targetPoint = mainCamera.transform.position + mainCamera.transform.forward * maxView;
 
-        //// ¹æÇâ °è»ê
+        //// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
         //Vector3 dir = targetPoint - firePoint.position;
 
         //float gravity = Mathf.Abs(Physics.gravity.y);
@@ -78,19 +78,19 @@ public class CannonControl : MonoBehaviour
 
         //if (velocitySquared <= 0)
         //{
-        //    Debug.LogWarning("µµ´ÞÇÒ ¼ö ¾ø´Â À§Ä¡ÀÔ´Ï´Ù. maxView ¶Ç´Â firingAngle °ªÀ» Á¶ÀýÇÏ¼¼¿ä.");
+        //    Debug.LogWarning("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Ô´Ï´ï¿½. maxView ï¿½Ç´ï¿½ firingAngle ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½.");
         //    return;
         //}
 
         //float velocity = Mathf.Sqrt(velocitySquared);
 
-        //// ¹ß»ç ¹æÇâ °è»ê (À§·Î firingAngle¸¸Å­ ²ª±â)
+        //// ï¿½ß»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ firingAngleï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½)
         //Vector3 forward = dirXZ.normalized;
         //Vector3 launchDir = Quaternion.LookRotation(forward) * Quaternion.Euler(-firingAngle, 0, 0) * Vector3.forward;
 
         //Vector3 launchVelocity = launchDir * velocity;
 
-        //// Æ÷Åº »ý¼º ¹× ¹ß»ç
+        //// ï¿½ï¿½Åº ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß»ï¿½
         //GameObject cannonBall = Instantiate(cannonBallPrefab, firePoint.position, Quaternion.identity);
         //cannonBall.SetActive(true);
         //Rigidbody rb = cannonBall.GetComponent<Rigidbody>();
@@ -108,31 +108,31 @@ public class CannonControl : MonoBehaviour
         float gravity = Mathf.Abs(Physics.gravity.y);
         float angleRad = firingAngle * Mathf.Deg2Rad;
 
-        // ¼öÆò ¹æÇâ(XZ)
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(XZ)
         Vector3 dirXZ = new Vector3(dir.x, 0, dir.z);
         float horizontalDist = dirXZ.magnitude;
         float heightDiff = dir.y;
 
-        // ¼Óµµ °è»ê
+        // ï¿½Óµï¿½ ï¿½ï¿½ï¿½
         float velocitySquared = (gravity * horizontalDist * horizontalDist) /
                                 (2 * (horizontalDist * Mathf.Tan(angleRad) - heightDiff) * Mathf.Pow(Mathf.Cos(angleRad), 2));
 
         if (velocitySquared <= 0)
         {
-            Debug.LogWarning("µµ´ÞÇÒ ¼ö ¾ø´Â À§Ä¡ÀÔ´Ï´Ù. °¢µµ³ª °Å¸® È®ÀÎÇÏ¼¼¿ä.");
+            Debug.LogWarning("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Ô´Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å¸ï¿½ È®ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½.");
             return;
         }
 
         float velocity = Mathf.Sqrt(velocitySquared);
 
-        // ¼öÁ¤µÈ: ¹ß»ç º¤ÅÍ °è»ê
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ß»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
         Vector3 forward = dirXZ.normalized;
         Vector3 launchDir = Quaternion.LookRotation(forward) * Quaternion.Euler(-firingAngle, 0, 0) * Vector3.forward;
 
         Vector3 launchVelocity = launchDir * velocity;
 
         rb.useGravity = true;
-        rb.velocity = launchVelocity; // ¶Ç´Â rb.AddForce(launchVelocity, ForceMode.VelocityChange);
+        rb.linearVelocity = launchVelocity; // ï¿½Ç´ï¿½ rb.AddForce(launchVelocity, ForceMode.VelocityChange);
     }
     IEnumerator ShotPlay(int idx)
     {

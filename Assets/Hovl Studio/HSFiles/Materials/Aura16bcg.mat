@@ -25,6 +25,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Aura16bcg
   m_Shader: {fileID: -6465566751694194690, guid: 44a7fe6696310d34f8acd987b267fc17, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords:
@@ -46,6 +48,7 @@ Material:
   - MOTIONVECTORS
   - DepthOnly
   - SHADOWCASTER
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -320,6 +323,7 @@ Material:
     - _UpColor: {r: 0.45882344, g: 0.737255, b: 1, a: 1}
     - _WavesspeedsizeXYTwistspeedsizeZW: {r: -1, g: 0.2, b: 4, a: 0.6}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &2135639802261576278
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -345,4 +349,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 7
+  version: 10

@@ -28,7 +28,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 7
+  version: 10
 --- !u!114 &-3481059198047914397
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -51,10 +51,13 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: StoneBricksHSlit
   m_Shader: {fileID: -6465566751694194690, guid: 44a7fe6696310d34f8acd987b267fc17, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords:
   - _DISABLE_SSR_TRANSPARENT
+  - _EMISSION
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -70,6 +73,7 @@ Material:
   - MOTIONVECTORS
   - DepthOnly
   - SHADOWCASTER
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -160,6 +164,7 @@ Material:
     - _AlphaCutoffEnable: 0
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
     - _BUILTIN_QueueControl: 0
     - _BUILTIN_QueueOffset: 0
     - _BackFresnel: -4
@@ -183,6 +188,7 @@ Material:
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 1
+    - _DstBlendAlpha: 1
     - _Emission: 1
     - _Emission_power: 1
     - _Emissionmult: 342
@@ -230,6 +236,7 @@ Material:
     - _Smoothness: 0
     - _Softedges: 0
     - _SrcBlend: 5
+    - _SrcBlendAlpha: 1
     - _StartDistance: 2
     - _StartRound: 6
     - _StencilRef: 0
@@ -300,3 +307,4 @@ Material:
     - _UpColor: {r: 0.45882344, g: 0.737255, b: 1, a: 1}
     - _WavesspeedsizeXYTwistspeedsizeZW: {r: -1, g: 0.2, b: 4, a: 0.6}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

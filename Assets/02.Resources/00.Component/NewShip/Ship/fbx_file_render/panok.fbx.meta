@@ -1,0 +1,306 @@
+fileFormatVersion: 2
+guid: 496ab85793cc82b4694e5d3b9eded00e
+ModelImporter:
+  serializedVersion: 21300
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_panok_stand10_k_flg_01_lambert9
+    second: {fileID: 2100000, guid: c4b31ee3172bd794ea3ad79746355515, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_panok_stand10_k_flg_lambert8
+    second: {fileID: 2100000, guid: a03984a421027ab4ba6ddd7ea008d882, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z1_z_Flag_A_SH
+    second: {fileID: 2100000, guid: c6e3bee2fb25c844e9793af80fc18959, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z1_z_Flag_B_SH
+    second: {fileID: 2100000, guid: 5e67abbd259e83f4f96c66b4f941ef2d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z1_z_Flag_C_SH
+    second: {fileID: 2100000, guid: 61372c0ac2509474898697bbedf4d5ff, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z1_z_Flag_E_SH
+    second: {fileID: 2100000, guid: 93fb43484095d314aa141f2a599c567c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z1_z_Flag_F_SH
+    second: {fileID: 2100000, guid: 5ad139aff774c944ba74079edba7f138, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z1_z_Flag_G_SH
+    second: {fileID: 2100000, guid: 4593871ff288a3f4fbd7510fba178427, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z_z_Flag_A_SH
+    second: {fileID: 2100000, guid: 592d1cd0155873747b9c70465d795a69, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z_z_Flag_B_SH
+    second: {fileID: 2100000, guid: 5ce64a97d65bba14784c0b4013059407, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z_z_Flag_C_SH
+    second: {fileID: 2100000, guid: 6806358847164904f8b840c0a6d4aff7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z_z_Flag_D_SH
+    second: {fileID: 2100000, guid: 5aa08ff234d8dcd44855aa33ecc84dbe, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z_z_Flag_E_SH
+    second: {fileID: 2100000, guid: 3a98ff1a8e205de4da8583afc6833401, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z_z_Flag_F_SH
+    second: {fileID: 2100000, guid: 6f4dac6317e20cf45a4ec87ada80da4f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: flag1_flag_z_z_Flag_G_SH
+    second: {fileID: 2100000, guid: f6c4a33d61ecd6647b09c31ffc32359b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_blinn2
+    second: {fileID: 2100000, guid: ab7c9f09c4d4cf24eb9c4bb25f29a3c9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_blinn3
+    second: {fileID: 2100000, guid: a942382d63d22f54593176df0f85bdfd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_blinn4
+    second: {fileID: 2100000, guid: 901b4ba99fb6ec94cac3f547fe33c64e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_blinn5
+    second: {fileID: 2100000, guid: 89fb88fa335ed154ebea966d51af973c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_blinn6
+    second: {fileID: 2100000, guid: 08371188cf4f0834eb459e91d3ed61c6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_canon_Wp_KorCannonBig_blinn1
+    second: {fileID: 2100000, guid: 13cd15cb92291ae4ebd70e1062e9a568, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_canon_Wp_KorCannon_blinn1
+    second: {fileID: 2100000, guid: 415d4c23c0e9db6498ad62e6da29f40c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_canon_Wp_KorCannon_cannonBaseLambert
+    second: {fileID: 2100000, guid: 429fe335a73937743914a7ca5bb60369, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_canon_cannonBaseLambert
+    second: {fileID: 2100000, guid: 8dc0a1652c1447e41afc37bed83d3a5b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_daepo_cach1_KorCannonBig_blinn1
+    second: {fileID: 2100000, guid: 946a98453278abd4bb1eb3f87c7fb708, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_daepo_cach2_KorCannonBig_blinn1
+    second: {fileID: 2100000, guid: f90952fd82c8f624f86520e35edea8fe, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_daepo_cach3_KorCannonBig_blinn1
+    second: {fileID: 2100000, guid: 6d6cabebdd1061843b6cd31672d683f2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_daepo_cach4_KorCannonBig_blinn1
+    second: {fileID: 2100000, guid: a1155bcbd1ee83342a9a78f6685801ff, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_daepo_cach5_KorCannonBig_blinn1
+    second: {fileID: 2100000, guid: af386bc911c1bbb43a8b7a19300e125e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_daepo_cach6_KorCannonBig_blinn1
+    second: {fileID: 2100000, guid: d56830ef81515344c9e505822ae59f65, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_daepo_cach7_KorCannonBig_blinn1
+    second: {fileID: 2100000, guid: 9bebd28264d81aa48b12ca7effefdb38, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_daepo_cach_KorCannonBig_blinn1
+    second: {fileID: 2100000, guid: e5064e8f5db826a4d9222a495601d031, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_flg_01_POK_body
+    second: {fileID: 2100000, guid: 05ffa154ae582ad4cbea9faf26502a9a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_flg_01_lambert8
+    second: {fileID: 2100000, guid: 124957e5ee6dc2443a500dceecd3046c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_k_flg_01_lambert9
+    second: {fileID: 2100000, guid: 5f15447296dcb364cb5c3076c2dd2842, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_panok_blinn1
+    second: {fileID: 2100000, guid: cd974b31753861548831b2cde2be4ceb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_panok_blinn2
+    second: {fileID: 2100000, guid: b7b74a0ec97c541478a9ff167c3b9d9d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: k_dapo_ani_panok_blinn3
+    second: {fileID: 2100000, guid: 20d6d40e0fe3c0348a6ef39cfc9f7696, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert1
+    second: {fileID: 2100000, guid: 8b79dd0bc1350534f850fefada52cc4e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert2
+    second: {fileID: 2100000, guid: d140a989be5e0fd469e6adb92d8fd13d, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 1
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -41,15 +41,17 @@ public class EnemyCannonControl : MonoBehaviour
     public int volleysFired;
 
     private EnemyAI _ai;
+    private ShipFaction _self;
     private Transform _player;
     private float _nextVolleyTime;
 
     void Start()
     {
         _ai = GetComponent<EnemyAI>();
-
-        GameObject target = GameObject.FindGameObjectWithTag("Player");
-        if (target != null) _player = target.transform;
+        _self = GetComponent<ShipFaction>();
+        // 표적은 Start 에서 고정하지 않는다.
+        // 진영이 셋이 되면서 표적이 플레이어일 수도, 관군함일 수도 있고
+        // 교전 중에도 바뀌므로, 매번 EnemyAI 가 고른 표적을 그대로 따른다.
 
         if (portPoints == null || portPoints.Length == 0)
             portPoints = CollectShotPoints("CanonL");
@@ -77,7 +79,10 @@ public class EnemyCannonControl : MonoBehaviour
 
     void Update()
     {
-        if (_player == null || _ai == null || cannonBallPrefab == null) return;
+        if (_ai == null || cannonBallPrefab == null) return;
+
+        _player = _ai.CurrentTarget;
+        if (_player == null) return;
         if (_ai.state != EnemyAI.State.Broadside) return;
         if (_ai.distanceToPlayer > fireRange) return;
         if (Time.time < _nextVolleyTime) return;
@@ -147,7 +152,12 @@ public class EnemyCannonControl : MonoBehaviour
 
         GameObject ball = Instantiate(cannonBallPrefab, firePoint.position, Quaternion.identity);
         Bullet bullet = ball.GetComponent<Bullet>();
-        if (bullet != null) bullet.shotMode = ShotMode.Enemy;
+        if (bullet != null)
+        {
+            bullet.shotMode = ShotMode.Enemy;
+            bullet.useFaction = true;
+            bullet.ownerFaction = _self != null ? _self.faction : Faction.Japanese;
+        }
         Rigidbody rb = ball.GetComponent<Rigidbody>();
         ball.SetActive(true);
         rb.useGravity = true;

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -36,9 +36,11 @@ public class WeatherSystem : MonoBehaviour
     public bool autoChange = true;
     [Tooltip("날씨가 바뀌는 데 걸리는 시간(초).")]
     public float transitionSeconds = 25f;
-    [Tooltip("시작할 때 사용할 프리셋 번호.")]
+    [Tooltip("시작 날씨를 무작위로 고른다. 끄면 아래 startIndex 로 시작한다.")]
+    public bool randomStartWeather = true;
+    [Tooltip("randomStartWeather 를 껐을 때 시작할 프리셋 번호.")]
     public int startIndex = 0;
-    [Tooltip("같은 날씨가 연속으로 뽑히지 않게 한다.")]
+    [Tooltip("직전 날씨와 그 앞의 날씨는 다음 날씨로 뽑지 않는다. 같은 날씨가 되풀이되는 것을 막는다.")]
     public bool avoidRepeat = true;
 
     [Header("비 파티클")]
@@ -101,6 +103,7 @@ public class WeatherSystem : MonoBehaviour
     private float _transitionTimer;
     private bool _transitioning;
     private int _currentIndex = -1;
+    private int _previousIndex = -1;   // 그 앞의 날씨. 다음 후보에서 함께 뺀다.
 
     private VolumeProfile _runtimeProfile;
     private CloudLayer _cloudLayer;
@@ -137,7 +140,10 @@ public class WeatherSystem : MonoBehaviour
             return;
         }
 
-        _currentIndex = Mathf.Clamp(startIndex, 0, presets.Count - 1);
+        int start = randomStartWeather ? PickWeighted(-1, -1) : -1;
+        if (start < 0) start = Mathf.Clamp(startIndex, 0, presets.Count - 1);
+        _currentIndex = start;
+        _previousIndex = -1;
         _from = presets[_currentIndex];
         _to = _from;
         _transitioning = false;
@@ -300,7 +306,7 @@ public class WeatherSystem : MonoBehaviour
 
     /// <summary>
     /// 빗줄기에 일정한 기울기를 준다. WindZone 처럼 가속도로 미는 것이 아니라
-    /// 고정 속도라서 수명이 길어도 한쪽으로 무한히 눈다니지 않는다.
+    /// 고정 속도라서 수명이 길어도 한쪽으로 무한히 밀리지 않는다.
     /// </summary>
     /// <summary>
     /// 빗줄기에 일정한 기울기를 준다. WindZone 처럼 가속도로 미는 것이 아니라
@@ -443,25 +449,51 @@ public class WeatherSystem : MonoBehaviour
         Apply(_blended);
     }
 
+    /// <summary>
+    /// 다음 날씨를 고른다.
+    ///
+    /// 지금 날씨와 그 직전 날씨는 후보에서 뺀다. 두 가지만 오가는 것을 막기 위해서다.
+    /// (맑음 → 비 → 맑음 → 비 처럼 왕복하는 것도 이 조건에 걸린다)
+    /// 프리셋 수가 적어 후보가 하나도 안 남으면 조건을 하나씩 풀어 준다.
+    /// </summary>
     int PickNextIndex()
+    {
+        int idx = PickWeighted(_currentIndex, _previousIndex);   // 최근 둘 다 제외
+        if (idx < 0) idx = PickWeighted(_currentIndex, -1);      // 그래도 없으면 지금 것만 제외
+        if (idx < 0) idx = _currentIndex;                        // 그것도 없으면 그대로 유지
+        return idx;
+    }
+
+    /// <summary>
+    /// weight 를 확률로 삼아 하나 고른다. excludeA / excludeB 는 뽑지 않는다.
+    /// 고를 수 있는 것이 없으면 -1.
+    /// </summary>
+    int PickWeighted(int excludeA, int excludeB)
     {
         float total = 0f;
         for (int i = 0; i < presets.Count; i++)
         {
-            if (avoidRepeat && i == _currentIndex) continue;
+            if (avoidRepeat && (i == excludeA || i == excludeB)) continue;
             total += Mathf.Max(0f, presets[i].weight);
         }
-        if (total <= 0f) return _currentIndex;
+        if (total <= 0f) return -1;
 
         float r = Random.value * total;
         for (int i = 0; i < presets.Count; i++)
         {
-            if (avoidRepeat && i == _currentIndex) continue;
+            if (avoidRepeat && (i == excludeA || i == excludeB)) continue;
             float w = Mathf.Max(0f, presets[i].weight);
             if (r < w) return i;
             r -= w;
         }
-        return _currentIndex;
+
+        // 부동소수 오차로 끝까지 왔을 때를 위한 보루
+        for (int i = presets.Count - 1; i >= 0; i--)
+        {
+            if (avoidRepeat && (i == excludeA || i == excludeB)) continue;
+            if (Mathf.Max(0f, presets[i].weight) > 0f) return i;
+        }
+        return -1;
     }
 
     /// <summary>지정한 날씨로 전환한다.</summary>
@@ -488,6 +520,7 @@ public class WeatherSystem : MonoBehaviour
         CopyInto(_blended, _fromScratch);
         _from = _fromScratch;
         _to = presets[index];
+        if (index != _currentIndex) _previousIndex = _currentIndex;
         _currentIndex = index;
         _transitionTimer = 0f;
         transitionSeconds = Mathf.Max(0f, seconds);

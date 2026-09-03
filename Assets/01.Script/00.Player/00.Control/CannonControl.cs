@@ -87,6 +87,26 @@ public class CannonControl : MonoBehaviour
         return sideMod ? portShotIndex : starboardShotIndex;
     }
 
+    /// <summary>
+    /// 내보내는 포탄에 이 배의 진영을 찍는다.
+    /// 진영이 셋(해적/관군/왜군)이 되면서 포탄이 누구 편인지를
+    /// 스스로 들고 가야 한다. ShipFaction 이 없으면 해적으로 본다.
+    /// </summary>
+    void StampFaction(GameObject cannonBall)
+    {
+        if (cannonBall == null) return;
+        Bullet bullet = cannonBall.GetComponent<Bullet>();
+        if (bullet == null) return;
+
+        bullet.shotMode = ShotMode.Player;
+        bullet.useFaction = true;
+
+        Transform ship = shipTransform != null ? shipTransform : transform;
+        ShipFaction sf = ship.GetComponentInParent<ShipFaction>();
+        bullet.ownerFaction = sf != null ? sf.faction : Faction.Pirate;
+    }
+
+
     public void FireFront(Transform firePoint)
     {
         // ī�޶� ���� �߻� ����
@@ -94,6 +114,7 @@ public class CannonControl : MonoBehaviour
 
         // ��ź ���� �� �߻�
         GameObject cannonBall = Instantiate(cannonBallPrefab, firePoint.position, Quaternion.identity);
+        StampFaction(cannonBall);
         cannonBall.SetActive(true);
         Rigidbody rb = cannonBall.GetComponent<Rigidbody>();
         rb.useGravity = true;
@@ -140,7 +161,7 @@ public class CannonControl : MonoBehaviour
     public void FireTarget(Transform firePoint)
     {
         GameObject cannonBall = Instantiate(cannonBallPrefab, firePoint.position, Quaternion.identity);
-        cannonBall.GetComponent<Bullet>().shotMode = ShotMode.Player;
+        StampFaction(cannonBall);
         Rigidbody rb = cannonBall.GetComponent<Rigidbody>();
         cannonBall.SetActive(true);
         Vector3 dir = target.position - firePoint.position;

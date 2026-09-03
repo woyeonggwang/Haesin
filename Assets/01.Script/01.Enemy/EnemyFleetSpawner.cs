@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -24,6 +24,18 @@ public class EnemyFleetSpawner : MonoBehaviour
     public Vector2Int sekiCount = new Vector2Int(2, 4);
     [Tooltip("함대 중심에서 배들이 흩어지는 반경(m).")]
     public float fleetSpread = 60f;
+    [Header("관군 함대")]
+    [Tooltip("관군 판옥선 원본(템플릿). 비워두면 관군은 등장하지 않는다.")]
+    public GameObject navyPanokTemplate;
+    [Tooltip("관군 함대당 판옥선 수 (최소~최대). 판옥선은 주력함이라 여럿씩 다니지 않는다.")]
+    public Vector2Int navyCount = new Vector2Int(1, 2);
+    [Tooltip("관군 함대 중심에서 배들이 흩어지는 반경(m).")]
+    public float navyFleetSpread = 45f;
+    [Tooltip("동시에 존재할 수 있는 관군 함대 수.")]
+    public int maxNavyFleets = 1;
+    [Tooltip("시작하자마자 관군 함대를 하나 스폰할지.")]
+    public bool spawnNavyOnStart = true;
+
 
     [Header("스폰 규칙")]
     [Tooltip("동시에 존재할 수 있는 함대 수.")]
@@ -40,11 +52,15 @@ public class EnemyFleetSpawner : MonoBehaviour
     public bool spawnOnStart = true;
 
     [Header("상태 (읽기 전용)")]
+    [Tooltip("활동 중인 왜군 함대 수.")]
     public int activeFleetCount;
+    [Tooltip("활동 중인 관군 함대 수.")]
+    public int activeNavyFleetCount;
 
     private Transform _player;
     private float _nextCheckTime;
     private readonly List<List<GameObject>> _fleets = new List<List<GameObject>>();
+    private readonly List<List<GameObject>> _navyFleets = new List<List<GameObject>>();
 
     void Start()
     {
@@ -54,28 +70,37 @@ public class EnemyFleetSpawner : MonoBehaviour
         // 원본은 템플릿으로만 쓴다
         if (anteckTemplate != null) anteckTemplate.SetActive(false);
         if (sekiTemplate != null) sekiTemplate.SetActive(false);
+        if (navyPanokTemplate != null) navyPanokTemplate.SetActive(false);
 
         if (spawnOnStart) TrySpawnFleet();
+        if (spawnNavyOnStart) TrySpawnNavyFleet();
     }
+
 
     void Update()
     {
         if (Time.time < _nextCheckTime) return;
         _nextCheckTime = Time.time + checkInterval;
 
-        CleanupFleets();
+        CleanupFleets(_fleets);
+        CleanupFleets(_navyFleets);
+
         if (_fleets.Count < maxFleets) TrySpawnFleet();
+        if (_navyFleets.Count < maxNavyFleets) TrySpawnNavyFleet();
+
         activeFleetCount = _fleets.Count;
+        activeNavyFleetCount = _navyFleets.Count;
     }
 
-    void CleanupFleets()
+
+    void CleanupFleets(List<List<GameObject>> fleets)
     {
-        for (int i = _fleets.Count - 1; i >= 0; i--)
+        for (int i = fleets.Count - 1; i >= 0; i--)
         {
-            List<GameObject> fleet = _fleets[i];
+            List<GameObject> fleet = fleets[i];
             fleet.RemoveAll(s => s == null);
 
-            if (fleet.Count == 0) { _fleets.RemoveAt(i); continue; }
+            if (fleet.Count == 0) { fleets.RemoveAt(i); continue; }
 
             if (despawnDistance > 0f && _player != null)
             {
@@ -91,22 +116,48 @@ public class EnemyFleetSpawner : MonoBehaviour
                 if (allFar)
                 {
                     for (int j = 0; j < fleet.Count; j++) Destroy(fleet[j]);
-                    _fleets.RemoveAt(i);
+                    fleets.RemoveAt(i);
                 }
             }
         }
     }
 
-    void TrySpawnFleet()
+    /// <summary>플레이어 기준 min~max 거리의 무작위 방향에 함대 중심을 잡는다.</summary>
+    Vector3 PickFleetCenter()
     {
-        if (_player == null || anteckTemplate == null || sekiTemplate == null) return;
-
-        // 플레이어 기준 무작위 방향, min~max 거리의 함대 중심
         float angle = Random.Range(0f, Mathf.PI * 2f);
         float dist = Random.Range(minSpawnDistance, maxSpawnDistance);
         Vector3 center = _player.position + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * dist;
         center.y = 0f;
+        return center;
+    }
 
+    /// <summary>
+    /// 관군 함대를 스폰한다. 왜군 함대와 같은 규칙(플레이어에서 멀리)을 따르지만
+    /// 목록을 따로 가져가서 왜군과 독립적으로 수를 유지한다.
+    /// 관군은 등장한 뒤 진영 규칙에 따라 플레이어도 왜군도 알아서 상대한다.
+    /// </summary>
+    void TrySpawnNavyFleet()
+    {
+        if (_player == null || navyPanokTemplate == null) return;
+
+        Vector3 center = PickFleetCenter();
+        var fleet = new List<GameObject>();
+
+        int n = Random.Range(navyCount.x, navyCount.y + 1);
+        for (int i = 0; i < n; i++)
+            fleet.Add(SpawnShip(navyPanokTemplate, center, navyFleetSpread));
+
+        _navyFleets.Add(fleet);
+        activeNavyFleetCount = _navyFleets.Count;
+    }
+
+
+    void TrySpawnFleet()
+    {
+        if (_player == null || anteckTemplate == null || sekiTemplate == null) return;
+
+        Vector3 center = PickFleetCenter();
         var fleet = new List<GameObject>();
 
         int nAnteck = Random.Range(anteckCount.x, anteckCount.y + 1);
@@ -120,6 +171,7 @@ public class EnemyFleetSpawner : MonoBehaviour
         _fleets.Add(fleet);
         activeFleetCount = _fleets.Count;
     }
+
 
     GameObject SpawnShip(GameObject template, Vector3 center, float spread)
     {

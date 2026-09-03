@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// 적 배들의 공통 토대. 힘 기반 항해(추진·조타·물 저항)와 순찰 로직을 담당한다.
@@ -40,14 +40,30 @@ public abstract class EnemyShipBase : MonoBehaviour
     [Tooltip("도착 후 다음 목적지로 떠나기 전 대기 시간 범위(초).")]
     public Vector2 waitRange = new Vector2(2f, 6f);
 
+    [Header("표적 선택")]
+    [Tooltip("표적을 다시 고르는 간격(초). 매 프레임 전체를 훑지 않기 위한 값.")]
+    public float retargetInterval = 0.5f;
+    [Tooltip("이 거리보다 먼 배는 표적 후보에서 제외한다(m). 0이면 제한 없음.")]
+    public float targetSearchRange = 600f;
     [Header("공통 상태 (읽기 전용)")]
     public float currentSpeed;
-    public float distanceToPlayer;
+    public float distanceToPlayer;    [Tooltip("현재 표적의 진영.")]
+    public string targetFactionName = "-";
+
 
     protected Rigidbody _rb;
     protected Transform _player;
     protected Rigidbody _playerRb;
+    protected ShipFaction _self;
+    protected ShipFaction _targetShip;
+    private float _nextRetargetTime;
     protected Vector3 _anchor;          // 순찰 중심
+
+    /// <summary>지금 쫓는 표적의 진영표. 포격 스크립트가 읽는다. 없으면 null.</summary>
+    public ShipFaction TargetShip { get { return _targetShip; } }
+
+    /// <summary>지금 쫓는 표적. 예전에는 항상 플레이어였지만 이제는 관군함일 수도 있다.</summary>
+    public Transform CurrentTarget { get { return _player; } }
     protected Vector3 _patrolTarget;
     private float _waitUntil;
     private bool _waiting;
@@ -55,6 +71,7 @@ public abstract class EnemyShipBase : MonoBehaviour
     protected virtual void Awake()
     {
         _rb = GetComponent<Rigidbody>();
+        _self = GetComponent<ShipFaction>();
         // 저항은 아래에서 직접 계산하므로 내장 감쇠는 끈다 (MoveControl 과 동일한 구조).
         _rb.linearDamping = 0f;
         _rb.angularDamping = 0f;
@@ -65,15 +82,53 @@ public abstract class EnemyShipBase : MonoBehaviour
 
     protected virtual void Start()
     {
-        GameObject target = GameObject.FindGameObjectWithTag("Player");
-        if (target != null)
-        {
-            _player = target.transform;
-            _playerRb = target.GetComponent<Rigidbody>();
-        }
         _anchor = transform.position;
         PickPatrolTarget();
+        Retarget();
     }
+
+    /// <summary>
+    /// 가장 가까운 적대 진영의 배를 표적으로 다시 고른다.
+    /// 예전에는 Player 태그만 찾았지만, 관군이 생기면서 왜군의 적이 둘이 되었다.
+    /// ShipFaction 이 붙어 있지 않은 배는 예전처럼 플레이어만 쫓는다.
+    /// </summary>
+    protected virtual void Retarget()
+    {
+        if (_self != null)
+        {
+            if (_targetShip != null && (!_targetShip.isActiveAndEnabled || !_self.IsHostileTo(_targetShip)))
+                _targetShip = null;
+
+            ShipFaction nearest = ShipFaction.FindNearestHostile(_self, targetSearchRange);
+            if (nearest != null) _targetShip = nearest;
+
+            if (_targetShip != null)
+            {
+                _player = _targetShip.transform;
+                _playerRb = _targetShip.Body;
+                targetFactionName = _targetShip.faction.ToString();
+                return;
+            }
+
+            _player = null;
+            _playerRb = null;
+            targetFactionName = "-";
+            return;
+        }
+
+        // 진영표가 없는 예전 구성 - 플레이어만 쫓는다.
+        if (_player == null)
+        {
+            GameObject t = GameObject.FindGameObjectWithTag("Player");
+            if (t != null)
+            {
+                _player = t.transform;
+                _playerRb = t.GetComponent<Rigidbody>();
+                targetFactionName = "Player";
+            }
+        }
+    }
+
 
     void FixedUpdate()
     {
@@ -84,8 +139,16 @@ public abstract class EnemyShipBase : MonoBehaviour
         flatVel.y = 0f;
         currentSpeed = Vector3.Dot(flatVel, fwd);
 
+        if (Time.time >= _nextRetargetTime)
+        {
+            _nextRetargetTime = Time.time + Mathf.Max(0.1f, retargetInterval);
+            Retarget();
+        }
+
         if (_player != null)
             distanceToPlayer = Vector3.Distance(transform.position, _player.position);
+        else
+            distanceToPlayer = float.MaxValue;
 
         TickBehaviour();
 

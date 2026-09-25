@@ -69,6 +69,10 @@ public class ShipHealth : MonoBehaviour
     public bool regenerating;
     [Tooltip("근처에 적이 있어 회복이 막혔는지.")]
     public bool threatNearby;
+    [Tooltip("마지막으로 이 배를 때린 진영. 상선 약탈의 공로를 가릴 때 쓴다.")]
+    public Faction lastAttackerFaction;
+    [Tooltip("한 번이라도 맞았는지. false 면 lastAttackerFaction 은 의미가 없다.")]
+    public bool hasLastAttacker;
 
     /// <summary>체력이 바뀔 때. (현재, 최대)</summary>
     public System.Action<float, float> OnHealthChanged;
@@ -76,6 +80,8 @@ public class ShipHealth : MonoBehaviour
     public System.Action<int, float> OnStageChanged;
     /// <summary>완파되는 순간.</summary>
     public System.Action OnDied;
+    /// <summary>침몰 연출이 끝난 순간 (destroyAfterSink 면 이 직후 파괴된다). 플레이어 리스폰이 이 신호를 기다린다.</summary>
+    public System.Action OnSunk;
     /// <summary>피해를 받은 순간. (피해량, 월드 좌표)</summary>
     public System.Action<float, Vector3> OnDamaged;
 
@@ -89,6 +95,8 @@ public class ShipHealth : MonoBehaviour
     private Vector3 _sinkStartPos;
     private Quaternion _sinkStartRot;
     private Quaternion _sinkEndRot;
+    private bool _sunkFired;
+    private readonly List<MonoBehaviour> _disabledBySink = new List<MonoBehaviour>();
 
     public float HealthRatio { get { return maxHealth <= 0f ? 0f : Mathf.Clamp01(currentHealth / maxHealth); } }
 
@@ -119,6 +127,14 @@ public class ShipHealth : MonoBehaviour
 
     // ---------- 피해 ----------
 
+    /// <summary>포탄 등이 이 배에 피해를 준다. 때린 쪽의 진영을 함께 남긴다.</summary>
+    public void TakeDamage(float amount, Vector3 worldPoint, Faction attacker)
+    {
+        lastAttackerFaction = attacker;
+        hasLastAttacker = true;
+        TakeDamage(amount, worldPoint);
+    }
+
     /// <summary>포탄 등이 이 배에 피해를 준다.</summary>
     public void TakeDamage(float amount, Vector3 worldPoint)
     {
@@ -146,6 +162,21 @@ public class ShipHealth : MonoBehaviour
         currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
         if (OnHealthChanged != null) OnHealthChanged(currentHealth, maxHealth);
         RecomputeStage(false);
+    }
+
+    /// <summary>
+    /// 완파 상태에서 되살린다. 플레이어 리스폰(PlayerRespawn)용.
+    /// 침몰 중이던 배는 BeginSink 가 껐던 것(컴포넌트·Rigidbody·콜라이더·항적)을 되돌린다.
+    /// </summary>
+    public void Revive()
+    {
+        if (isSinking) EndSinkAndRestore();
+        isDead = false;
+        currentHealth = maxHealth;
+        _lastDamageTime = -999f;
+        regenerating = false;
+        if (OnHealthChanged != null) OnHealthChanged(currentHealth, maxHealth);
+        RecomputeStage(true);
     }
 
     void RecomputeStage(bool force)
@@ -254,12 +285,15 @@ public class ShipHealth : MonoBehaviour
         _sinkEndRot = _sinkStartRot * Quaternion.Euler(sinkRollAngle * 0.35f, 0f, roll);
 
         // 조종·부력·충돌을 모두 끊는다. 이제 이 배는 연출일 뿐이다.
+        _disabledBySink.Clear();
+        _sunkFired = false;
         foreach (var b in GetComponents<MonoBehaviour>())
         {
-            if (b == this) continue;
+            if (b == this || !b.enabled) continue;
             string n = b.GetType().Name;
-            if (n == "ShipHealth" || n == "ShipFaction" || n == "ShipBurnVisual") continue;
+            if (n == "ShipHealth" || n == "ShipFaction" || n == "ShipBurnVisual" || n == "PlayerRespawn") continue;
             b.enabled = false;
+            _disabledBySink.Add(b);
         }
 
         var rb = GetComponent<Rigidbody>();
@@ -276,6 +310,21 @@ public class ShipHealth : MonoBehaviour
         if (wake != null) wake.gameObject.SetActive(false);
         Transform bow = transform.Find("BowWave");
         if (bow != null) bow.gameObject.SetActive(false);
+
+        // 불·연기는 새로 뿜지 않고 남은 것만 사그라들게 한다 (물에 잠기며 자연스럽게 꺼지는 느낌).
+        SetDamageFXEmission(false);
+    }
+
+    /// <summary>DamageFX 아래 파티클의 방출을 켜거나 끈다. 끌 때는 이미 나온 파티클은 수명대로 사라진다.</summary>
+    void SetDamageFXEmission(bool on)
+    {
+        Transform fx = transform.Find("DamageFX");
+        if (fx == null) return;
+        foreach (var ps in fx.GetComponentsInChildren<ParticleSystem>(true))
+        {
+            if (on) { if (!ps.isPlaying) ps.Play(true); }
+            else ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
     }
 
     void TickSink()
@@ -288,6 +337,36 @@ public class ShipHealth : MonoBehaviour
         transform.position = _sinkStartPos + Vector3.down * (sinkDepth * fall);
         transform.rotation = Quaternion.Slerp(_sinkStartRot, _sinkEndRot, Mathf.SmoothStep(0f, 1f, Mathf.Min(1f, t * 1.6f)));
 
-        if (t >= 1f && destroyAfterSink) Destroy(gameObject);
+        if (t >= 1f && !_sunkFired)
+        {
+            _sunkFired = true;
+            if (OnSunk != null) OnSunk();
+            if (destroyAfterSink) Destroy(gameObject);
+        }
+    }
+
+    /// <summary>침몰 연출을 멈추고 BeginSink 가 껐던 것을 되돌린다. 위치·회전은 호출한 쪽(리스폰)이 정한다.</summary>
+    void EndSinkAndRestore()
+    {
+        isSinking = false;
+        _sinkTimer = 0f;
+        for (int i = 0; i < _disabledBySink.Count; i++)
+            if (_disabledBySink[i] != null) _disabledBySink[i].enabled = true;
+        _disabledBySink.Clear();
+
+        var rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+        foreach (var c in GetComponentsInChildren<Collider>(true)) c.enabled = true;
+
+        Transform wake = transform.Find("WakeFoam");
+        if (wake != null) wake.gameObject.SetActive(true);
+        Transform bow = transform.Find("BowWave");
+        if (bow != null) bow.gameObject.SetActive(true);
+        SetDamageFXEmission(true);
     }
 }

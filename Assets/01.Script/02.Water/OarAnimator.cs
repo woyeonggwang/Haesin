@@ -74,6 +74,7 @@ public class OarAnimator : MonoBehaviour
     private float _speed;        // 부호 있는 전진 속도
     private float _phase;        // 0~1
     private float _phaseL, _phaseR;
+    private float _dockBlend;    // 0 = 젓는 중, 1 = 정박(노를 앞 자세로 멈춤)
 
     void OnEnable()
     {
@@ -147,6 +148,11 @@ public class OarAnimator : MonoBehaviour
         if (turnDifferential > 0f && _rb != null)
             steer = Mathf.Clamp(_rb.angularVelocity.y * Mathf.Rad2Deg / 25f, -1f, 1f);
 
+        // 정박 중(하차, MoveControl.docked)에는 노를 멈추고 앞 자세로 천천히 모은다. 예전엔 멈춰 있어도 idleStrokeRate 로 계속 저었음.
+        bool docked = _move != null && _move.docked;
+        _dockBlend = Mathf.MoveTowards(_dockBlend, docked ? 1f : 0f, Time.deltaTime / 1.5f);
+        currentStrokeRate *= 1f - _dockBlend;
+
         float rateL = currentStrokeRate * (1f + steer * turnDifferential);
         float rateR = currentStrokeRate * (1f - steer * turnDifferential);
 
@@ -167,7 +173,7 @@ public class OarAnimator : MonoBehaviour
             if (oars[i] == null) continue;
             float p = Mathf.Repeat(phase + i * phaseOffsetPerOar, 1f);
             float t = StrokeCurve(p);                       // 0 = 앞, 1 = 뒤
-            float angle = Mathf.Lerp(forwardAngle, backAngle, t);
+            float angle = Mathf.Lerp(forwardAngle, backAngle, t * (1f - _dockBlend));
             Vector3 e = baseEuler[i];
             oars[i].localEulerAngles = new Vector3(angle, e.y, e.z);
         }
@@ -192,6 +198,7 @@ public class OarAnimator : MonoBehaviour
         if (!enableSurge) return;
         if (_rb == null || _rb.isKinematic) return;
         if (_move == null) return;      // 물리로 움직이는 배에서만
+        if (_move.docked) return;       // 정박 중엔 노를 안 저으므로 서지도 없음
 
         float d = Mathf.Clamp(driveFraction, 0.05f, 0.95f);
         float pulse;

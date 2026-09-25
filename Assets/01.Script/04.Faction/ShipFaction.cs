@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>배가 속한 진영.</summary>
@@ -80,6 +80,7 @@ public class ShipFaction : MonoBehaviour
         {
             ShipFaction s = All[i];
             if (s == null || !self.IsHostileTo(s)) continue;
+            if (!IsTargetable(s)) continue;
 
             float d = (s.transform.position - p).sqrMagnitude;
             if (d < bestSqr)
@@ -89,6 +90,19 @@ public class ShipFaction : MonoBehaviour
             }
         }
         return best;
+    }
+
+    /// <summary>
+    /// 표적으로 삼을 수 있는 배인지. 완파·침몰 중인 배와 베이스 안전지대(BaseSafeZone) 안의 배는 표적이 아니다.
+    /// (침몰 중인 플레이어를 계속 때리지 않게, 선착장에 정박한 플레이어를 적이 쫓아오지 않게.)
+    /// </summary>
+    public static bool IsTargetable(ShipFaction s)
+    {
+        if (s == null) return false;
+        ShipHealth h = s.GetComponent<ShipHealth>();
+        if (h != null && (h.isDead || h.isSinking)) return false;
+        if (BaseSafeZone.Contains(s.transform.position)) return false;
+        return true;
     }
 
     /// <summary>

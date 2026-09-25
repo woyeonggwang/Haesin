@@ -36,6 +36,18 @@ public class EnemyFleetSpawner : MonoBehaviour
     [Tooltip("시작하자마자 관군 함대를 하나 스폰할지.")]
     public bool spawnNavyOnStart = true;
 
+    [Header("상선 호송대")]
+    [Tooltip("상선 원본(템플릿). 비워두면 상선은 등장하지 않는다.")]
+    public GameObject merchantTemplate;
+    [Tooltip("호송대 한 무리의 상선 수 (최소~최대).")]
+    public Vector2Int merchantCount = new Vector2Int(1, 3);
+    [Tooltip("호송대 배들이 서로 떨어지는 간격(m). 대열 폭이 된다.")]
+    public float merchantSpacing = 45f;
+    [Tooltip("동시에 존재할 수 있는 상선 호송대 수.")]
+    public int maxMerchantConvoys = 2;
+    [Tooltip("시작하자마자 호송대를 하나 스폰할지.")]
+    public bool spawnMerchantOnStart = true;
+
 
     [Header("스폰 규칙")]
     [Tooltip("동시에 존재할 수 있는 함대 수.")]
@@ -44,6 +56,9 @@ public class EnemyFleetSpawner : MonoBehaviour
     public float minSpawnDistance = 250f;
     [Tooltip("스폰 가능한 최대 거리(m).")]
     public float maxSpawnDistance = 500f;
+    [Tooltip("거리 분포의 치우침. 1이면 min~max 에 고르게, 클수록 먼 쪽에 몰려서 생성된다.")]
+    [Range(0.5f, 4f)]
+    public float spawnDistanceBias = 1.8f;
     [Tooltip("이 거리보다 멀어진 함대는 정리한다(m). 0이면 정리하지 않음.")]
     public float despawnDistance = 900f;
     [Tooltip("스폰 조건을 확인하는 간격(초).")]
@@ -56,11 +71,14 @@ public class EnemyFleetSpawner : MonoBehaviour
     public int activeFleetCount;
     [Tooltip("활동 중인 관군 함대 수.")]
     public int activeNavyFleetCount;
+    [Tooltip("활동 중인 상선 호송대 수.")]
+    public int activeMerchantConvoyCount;
 
     private Transform _player;
     private float _nextCheckTime;
     private readonly List<List<GameObject>> _fleets = new List<List<GameObject>>();
     private readonly List<List<GameObject>> _navyFleets = new List<List<GameObject>>();
+    private readonly List<List<GameObject>> _merchantConvoys = new List<List<GameObject>>();
 
     void Start()
     {
@@ -71,9 +89,11 @@ public class EnemyFleetSpawner : MonoBehaviour
         if (anteckTemplate != null) anteckTemplate.SetActive(false);
         if (sekiTemplate != null) sekiTemplate.SetActive(false);
         if (navyPanokTemplate != null) navyPanokTemplate.SetActive(false);
+        if (merchantTemplate != null) merchantTemplate.SetActive(false);
 
         if (spawnOnStart) TrySpawnFleet();
         if (spawnNavyOnStart) TrySpawnNavyFleet();
+        if (spawnMerchantOnStart) TrySpawnMerchantConvoy();
     }
 
 
@@ -84,12 +104,15 @@ public class EnemyFleetSpawner : MonoBehaviour
 
         CleanupFleets(_fleets);
         CleanupFleets(_navyFleets);
+        CleanupFleets(_merchantConvoys);
 
         if (_fleets.Count < maxFleets) TrySpawnFleet();
         if (_navyFleets.Count < maxNavyFleets) TrySpawnNavyFleet();
+        if (_merchantConvoys.Count < maxMerchantConvoys) TrySpawnMerchantConvoy();
 
         activeFleetCount = _fleets.Count;
         activeNavyFleetCount = _navyFleets.Count;
+        activeMerchantConvoyCount = _merchantConvoys.Count;
     }
 
 
@@ -126,8 +149,22 @@ public class EnemyFleetSpawner : MonoBehaviour
     Vector3 PickFleetCenter()
     {
         float angle = Random.Range(0f, Mathf.PI * 2f);
-        float dist = Random.Range(minSpawnDistance, maxSpawnDistance);
-        Vector3 center = _player.position + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * dist;
+
+        // 거리를 균등하게 뽑으면 절반이 (min+max)/2 안쪽에 몰려서 적이 코앞에 나타난 것처럼 보인다.
+        // 0~1 난수에 거듭제곱을 씌워 분포를 먼 쪽으로 민다. bias 가 1이면 예전과 같은 균등 분포.
+        Vector3 center = Vector3.zero;
+        // 베이스 안전지대(선착장 기준 반경) 안에는 스폰하지 않는다. 몇 번 다시 뽑고, 그래도 안이면 경계 밖으로 밀어낸다.
+        for (int attempt = 0; attempt < 12; attempt++)
+        {
+            float u = Random.value;
+            float t = Mathf.Pow(u, 1f / Mathf.Max(0.01f, spawnDistanceBias));
+            float dist = Mathf.Lerp(minSpawnDistance, maxSpawnDistance, t);
+            center = _player.position + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * dist;
+            center.y = 0f;
+            if (!BaseSafeZone.Contains(center)) return center;
+            angle = Random.Range(0f, Mathf.PI * 2f);
+        }
+        center = BaseSafeZone.PushOutside(center, 80f);
         center.y = 0f;
         return center;
     }
@@ -137,6 +174,49 @@ public class EnemyFleetSpawner : MonoBehaviour
     /// 목록을 따로 가져가서 왜군과 독립적으로 수를 유지한다.
     /// 관군은 등장한 뒤 진영 규칙에 따라 플레이어도 왜군도 알아서 상대한다.
     /// </summary>
+    /// <summary>
+    /// 상선 호송대를 스폰한다. 1~3척이 한 줄로 늘어서서 같이 다닌다.
+    /// 맨 앞 배가 선도선이고 나머지는 그 뒤 좌우로 붙어 따라간다.
+    /// 상선은 관군과 같은 진영이므로 플레이어와 왜군 모두에게 표적이 된다.
+    /// </summary>
+    void TrySpawnMerchantConvoy()
+    {
+        if (_player == null || merchantTemplate == null) return;
+
+        Vector3 center = PickFleetCenter();
+        float heading = Random.Range(0f, 360f);
+        Quaternion rot = Quaternion.Euler(0f, heading, 0f);
+
+        int n = Random.Range(merchantCount.x, merchantCount.y + 1);
+        var convoy = new List<GameObject>();
+        MerchantAI leader = null;
+
+        for (int i = 0; i < n; i++)
+        {
+            // 선도선은 한가운데, 나머지는 뒤쪽 좌우로 번갈아 붙인다.
+            float back = i * merchantSpacing * 0.75f;
+            float side = (i == 0) ? 0f : ((i % 2 == 1) ? 1f : -1f) * merchantSpacing * 0.5f;
+            Vector3 pos = center + rot * new Vector3(side, 0f, -back);
+            pos.y = 0f;
+
+            GameObject ship = Instantiate(merchantTemplate, pos, rot);
+            ship.SetActive(true);
+            convoy.Add(ship);
+
+            var ai = ship.GetComponent<MerchantAI>();
+            if (ai == null) continue;
+            if (leader == null) { leader = ai; ai.convoyLeader = null; }
+            else
+            {
+                ai.convoyLeader = leader;
+                ai.formationOffset = new Vector2(side, back);
+            }
+        }
+
+        _merchantConvoys.Add(convoy);
+        activeMerchantConvoyCount = _merchantConvoys.Count;
+    }
+
     void TrySpawnNavyFleet()
     {
         if (_player == null || navyPanokTemplate == null) return;

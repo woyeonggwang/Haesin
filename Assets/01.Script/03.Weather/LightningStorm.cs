@@ -37,6 +37,19 @@ public class LightningStorm : MonoBehaviour
     [Tooltip("연속으로 깜빡이는 최대 횟수.")]
     public int maxSubFlashes = 3;
 
+    [Header("실내 가림")]
+    [Tooltip("카메라 위가 막혀 있으면(동굴 등) 섬광을 줄인다. 섬광 라이트는 그림자가 없는 방향광이라 막지 않으면 동굴 안까지 번쩍인다.")]
+    public bool shelterCheck = true;
+    [Tooltip("카메라에서 위로 쏘는 레이 길이(m).")]
+    public float shelterRayLength = 400f;
+    [Tooltip("카메라 둘레 샘플 반경(m). 중심 + 4점 중 막힌 비율만큼 섬광을 줄인다.")]
+    public float shelterSampleRadius = 6f;
+    [Tooltip("가림 값 변화 시간(초).")]
+    public float shelterSmoothTime = 0.5f;
+    public LayerMask shelterMask = ~((1 << 2) | (1 << 4) | (1 << 5) | (1 << 8));
+    [Tooltip("읽기 전용: 0 = 하늘이 보임, 1 = 완전히 덮임.")]
+    [Range(0f, 1f)] public float shelter01;
+
     [Header("번개 줄기 (에셋 임포트 후 연결)")]
     [Tooltip("Digital Ruby 의 Lightning Bolt 프리팹 등을 넣으면 실제 번개가 생긴다.")]
     public GameObject boltPrefab;
@@ -68,6 +81,7 @@ public class LightningStorm : MonoBehaviour
     private int _subFlashLeft;
     private float _baseFlashIntensity;
     private HDAdditionalLightData _flashHD;
+    private float _shelterTarget, _shelterVel, _shelterTimer;
 
     void Start()
     {
@@ -129,6 +143,8 @@ public class LightningStorm : MonoBehaviour
             }
         }
 
+        UpdateShelter();
+
         float wind = ocean != null ? ocean.largeWindSpeed : 0f;
         if (wind < minWindSpeed) { nextStrikeIn = -1f; return; }
 
@@ -137,9 +153,35 @@ public class LightningStorm : MonoBehaviour
         if (_timer <= 0f) Strike();
     }
 
+    void UpdateShelter()
+    {
+        if (!shelterCheck) { shelter01 = 0f; return; }
+        _shelterTimer -= Time.deltaTime;
+        if (_shelterTimer <= 0f)
+        {
+            _shelterTimer = 0.2f;
+            var cam = Camera.main;
+            if (cam != null)
+            {
+                Vector3 c = cam.transform.position;
+                float r = shelterSampleRadius;
+                int covered = 0;
+                for (int i = 0; i < 5; i++)
+                {
+                    Vector3 o = c;
+                    if (i == 1) o.x += r; else if (i == 2) o.x -= r; else if (i == 3) o.z += r; else if (i == 4) o.z -= r;
+                    if (Physics.Raycast(o, Vector3.up, shelterRayLength, shelterMask, QueryTriggerInteraction.Ignore)) covered++;
+                }
+                _shelterTarget = covered / 5f;
+            }
+        }
+        shelter01 = Mathf.SmoothDamp(shelter01, _shelterTarget, ref _shelterVel, shelterSmoothTime);
+    }
+
     void SetFlash(float lux)
     {
         if (flashLight == null) return;
+        lux *= 1f - Mathf.Clamp01(shelter01);
         if (_flashHD != null) _flashHD.SetIntensity(lux, UnityEngine.Rendering.LightUnit.Lux);
         else flashLight.intensity = lux;
         flashLight.enabled = lux > 1f;

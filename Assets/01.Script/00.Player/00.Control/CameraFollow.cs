@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +8,9 @@ public class CameraFollow : MonoBehaviour
     public Vector3 offset = new Vector3(0, 2, -5); // ī�޶� ��ġ ������
     public float rotationSpeed = 5f; // ȸ�� �ӵ�
     public CannonControl cannon;
+    [Tooltip("카메라가 해수면 아래로 내려가지 않게 하는 최저 높이(m, 월드 y). 배가 침몰할 때 바다 밑이 보이지 않게 한다.")]
+    public float minHeightAboveSea = 3f;
+    private ShipHealth _health; // 침몰 중인지 보기 위해
     private float fovValue;
     private Camera cam;
     public float targetFov;
@@ -18,6 +21,7 @@ public class CameraFollow : MonoBehaviour
     float pitch = 0f;
     private void Start()
     {
+        if (target != null) _health = target.GetComponentInParent<ShipHealth>();
         Cursor.visible = false;
         cam = transform.GetChild(0).GetComponent<Camera>();
         targetFov = 60f;
@@ -88,7 +92,14 @@ public class CameraFollow : MonoBehaviour
         Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
         Vector3 desiredPosition = target.position + rotation * offset;
 
+        // 침몰 중에는 배가 해수면 아래로 내려가므로 카메라 높이를 해수면 위로 고정하고,
+        // 시선도 해수면 근처(가라앉는 자리)로 잡아 바다 밑이 보이지 않게 한다.
+        // 평소에는 시야를 자유롭게 내릴 수 있어야 하므로(원거리 조준) 클램프는 침몰 중에만 건다.
+        bool sinking = _health != null && _health.isSinking;
+        if (sinking && desiredPosition.y < minHeightAboveSea) desiredPosition.y = minHeightAboveSea;
         transform.position = desiredPosition;
-        transform.LookAt(target);
+        Vector3 lookAt = target.position;
+        if (sinking && lookAt.y < 0f) lookAt.y = 0f;
+        transform.LookAt(lookAt);
     }
 }

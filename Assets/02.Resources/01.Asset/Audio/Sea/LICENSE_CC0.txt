@@ -1,0 +1,5 @@
+이 폴더의 소리는 BigSoundBank (https://bigsoundbank.com) 의 CC0 (퍼블릭 도메인) 음원입니다. 출처 표기 의무 없음.
+- ocean_waves_s0698: Sea Waves https://bigsoundbank.com/sea-waves-s0698.html
+- hull_water_rush_s3218: Mountain stream #5 https://bigsoundbank.com/detail-3218 (선체가 물을 가르는 소리로 사용)
+- rowing_quickly_s1513: Rowing Quickly https://bigsoundbank.com/detail-1513
+다운로드: 2026-09-19, Claude (Unity MCP)

@@ -1,0 +1,5 @@
+Sword sounds - StarNinjas (OpenGameArt.org), CC0 1.0
+https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes
+Credit appreciated: https://opengameart.org/users/starninjas
+sword_swing_1/2/3 = sword.1/7/3.ogg, sword_clash_1/2/3 = sword_clash.9/3/2.ogg
+Processed (HaeSin, 2026-09-24): normalized to peak 0.89 (source peaks exceeded 1.0), trailing silence trimmed, WAV 16-bit 44.1 kHz stereo.

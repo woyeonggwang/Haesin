@@ -46,12 +46,17 @@ public class Bullet : MonoBehaviour
         if (hit != null)
         {
             ShipHealth health = hit.GetComponent<ShipHealth>();
-            if (health != null) health.TakeDamage(damage, transform.position);
+            if (health != null) health.TakeDamage(damage, transform.position, ownerFaction);
         }
 
         GameObject efxTemp = Instantiate(exploseEfx);
         efxTemp.transform.position = transform.position;
         efxTemp.SetActive(true);
+
+        // 명중음 (BulletAudio 가 있으면). 포탄이 곧 파괴되므로 소리는 별도 오브젝트에서 난다.
+        BulletAudio audio = GetComponent<BulletAudio>();
+        if (audio != null) audio.OnImpact();
+
         StartCoroutine(DestroyPlay());
     }
 

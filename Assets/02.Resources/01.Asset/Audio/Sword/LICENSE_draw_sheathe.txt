@@ -1,0 +1,8 @@
+sword_draw_1/2/3 = RPG Sound Pack (OpenGameArt, CC0) battle/sword-unsheathe.wav, sword-unsheathe3.wav, sword-unsheathe4.wav
+  https://opengameart.org/content/rpg-sound-pack
+sword_sheathe_1/2/3 = composed in HaeSin (2026-09-24) from CC0 sources:
+  1: BigSoundBank #0129 'Sword' (Joseph SARDIN, CC0) slide + RPG Sound Pack inventory/metal-small1.wav pitched 0.7, low-passed (clack)
+     https://bigsoundbank.com/sword-s0129.html
+  2: RPG Sound Pack sword-unsheathe2.wav slowed 0.85 and reversed + metal-small2.wav pitched 0.7 (clack)
+  3: RPG Sound Pack sword-unsheathe5.wav slowed 0.85 and reversed + metal-small3.wav pitched 0.75 (clack)
+  clack starts at 0.26 s in each sheathe clip. All normalized to peak 0.89, mono 16-bit 44.1 kHz.

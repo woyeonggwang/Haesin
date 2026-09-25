@@ -42,6 +42,12 @@ public class NavyCannonControl : MonoBehaviour
     [Tooltip("표적 쪽 현이 이 각도 이내로 정렬됐을 때만 발사한다(도).")]
     public float sideArc = 55f;
 
+    [Header("예측 사격")]
+    [Tooltip("표적 이동 예측 비율. 1 = 비행시간 동안의 이동량을 전부 반영, 0 = 현재 위치를 쏨(예전 방식).")]
+    [Range(0f, 1.2f)] public float leadFactor = 1f;
+    [Tooltip("예측에 쓰는 비행시간 상한(초).")]
+    public float maxLeadTime = 6f;
+
     [Header("상태 (읽기 전용)")]
     public int volleysFired;
 
@@ -126,31 +132,15 @@ public class NavyCannonControl : MonoBehaviour
 
     void Fire(Transform firePoint, ShipFaction target)
     {
+        // 예측 조준점: 표적이 포탄 비행시간 동안 움직일 자리 (BallisticAim 참고)
+        Vector3 predicted = BallisticAim.PredictAim(firePoint.position, target.AimPosition,
+            BallisticAim.VelocityOf(target.transform), firingAngle, leadFactor, maxLeadTime);
+
         Vector2 spread = Random.insideUnitCircle * inaccuracy;
-        Vector3 aim = target.AimPosition + new Vector3(spread.x, 0f, spread.y);
+        Vector3 aim = predicted + new Vector3(spread.x, 0f, spread.y);
 
-        Vector3 dir = aim - firePoint.position;
-        Vector3 dirXZ = new Vector3(dir.x, 0f, dir.z);
-        float horizontalDist = dirXZ.magnitude;
-        float heightDiff = dir.y;
-
-        float gravity = Mathf.Abs(Physics.gravity.y);
-        float angleRad = firingAngle * Mathf.Deg2Rad;
-
-        float denom = 2f * (horizontalDist * Mathf.Tan(angleRad) - heightDiff) * Mathf.Pow(Mathf.Cos(angleRad), 2f);
-        Vector3 launchVelocity;
-        if (denom <= 0.001f)
-        {
-            // 해가 없으면(너무 가깝거나 높이차 문제) 직사로 쏜다.
-            launchVelocity = (dirXZ.normalized + Vector3.up * 0.25f).normalized * 30f;
-        }
-        else
-        {
-            float velocity = Mathf.Sqrt(gravity * horizontalDist * horizontalDist / denom);
-            Vector3 forward = dirXZ.normalized;
-            Vector3 launchDir = Quaternion.LookRotation(forward) * Quaternion.Euler(-firingAngle, 0f, 0f) * Vector3.forward;
-            launchVelocity = launchDir * velocity;
-        }
+        float flightTime;
+        Vector3 launchVelocity = BallisticAim.LaunchVelocity(firePoint.position, aim, firingAngle, out flightTime);
 
         GameObject ball = Instantiate(cannonBallPrefab, firePoint.position, Quaternion.identity);
 

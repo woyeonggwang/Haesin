@@ -69,9 +69,20 @@ public class MoveControl : MonoBehaviour
     public float currentTurnRate;
     [Range(0f, 1f)] public float boostLevel;
 
+    [Header("정박 (하차 중)")]
+    [Tooltip("정박 중: 입력을 무시하고, 정박한 자리·방향으로 약하게 끌어당겨 파도에 떠내려가지 않게 한다. BoardingSystem 이 SetDocked 로 켜고 끈다.")]
+    public bool docked;
+    [Tooltip("정박 위치로 끌어당기는 세기(1/s²). 파도·충돌로 밀려도 천천히 돌아온다.")]
+    public float anchorStiffness = 0.6f;
+    [Tooltip("정박 중 추가 수평 감속(1/s).")]
+    public float anchorDamping = 1.5f;
+    [Tooltip("정박 방향으로 되돌리는 세기(1/s²).")]
+    public float anchorYawStiffness = 0.8f;
+
     private Rigidbody _rb;
     private float _inputThrottle;   // -1 ~ 1
     private float _inputSteer;      // -1 ~ 1
+    private Vector3 _anchorPos; private float _anchorYaw;
 
     void Awake()
     {
@@ -161,6 +172,28 @@ public class MoveControl : MonoBehaviour
 
         // ---- 선회 저항 ----
         _rb.AddTorque(-Vector3.up * _rb.angularVelocity.y * angularDrag, ForceMode.Acceleration);
+
+        // ---- 정박: 제자리로 끌어당김 ----
+        if (docked)
+        {
+            Vector3 d = _anchorPos - _rb.position; d.y = 0f;
+            _rb.AddForce(d * anchorStiffness - flatVel * anchorDamping, ForceMode.Acceleration);
+            float dyaw = Mathf.DeltaAngle(_rb.rotation.eulerAngles.y, _anchorYaw) * Mathf.Deg2Rad;
+            _rb.AddTorque(Vector3.up * dyaw * anchorYawStiffness, ForceMode.Acceleration);
+        }
+    }
+
+    /// <summary>
+    /// 정박 켜기/끄기. 하차 중에는 MoveControl 을 끄지 않고 이것을 켠다.
+    /// (예전엔 하차 때 MoveControl 을 꺼서 물 저항 계산까지 멈춰(Rigidbody 저항 0) 배가 파도에 떠내려갔고,
+    ///  currentSpeed 가 끄기 직전 값으로 남아 OarAnimator 가 계속 노를 저었음 — 2026-09-25 확인.
+    ///  또 PlayerInput(Send Messages) 은 꺼진 컴포넌트에도 OnMove 를 보내서, 걸을 때 누른 WASD 가 _inputThrottle 에 들어갔음.)
+    /// </summary>
+    public void SetDocked(bool on)
+    {
+        docked = on;
+        Halt();
+        if (on && _rb != null) { _anchorPos = _rb.position; _anchorYaw = _rb.rotation.eulerAngles.y; }
     }
 
     // ===== Input System (PlayerInput / Send Messages) =====
@@ -168,13 +201,14 @@ public class MoveControl : MonoBehaviour
     private void OnMove(InputValue value)
     {
         Vector2 input = value.Get<Vector2>();
+        if (docked || !enabled) input = Vector2.zero; // 하차 중 걷기 WASD 가 배로 들어오지 않게
         _inputThrottle = input.y;
         _inputSteer = input.x;
     }
 
     private void OnBoost(InputValue value)
     {
-        boost = value.isPressed;
+        boost = value.isPressed && !docked && enabled;
     }
 
     /// <summary>외부에서 강제로 멈추고 싶을 때.</summary>
@@ -182,6 +216,8 @@ public class MoveControl : MonoBehaviour
     {
         _inputThrottle = 0f;
         _inputSteer = 0f;
+        boost = false;
+        currentSpeed = 0f; currentTurnRate = 0f; // OarAnimator 가 읽는 값 — 안 지우면 멈춘 뒤에도 노를 저음
         if (_rb != null)
         {
             _rb.linearVelocity = Vector3.zero;

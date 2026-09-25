@@ -104,3 +104,11 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Large third-party assets / baked data (exceeds GitHub size limits) - keep locally only
+/Assets/02.Resources/01.Asset/Textures/TextureHaven/
+/Assets/02.Resources/01.Asset/Textures/TextureHaven.meta
+/Assets/02.Resources/01.Asset/Textures/ObjectiveEnvironment_Assets/
+/Assets/02.Resources/01.Asset/Textures/ObjectiveEnvironment_Assets.meta
+/Assets/00.Scenes/SampleScene/*.bytes
+/Assets/00.Scenes/SampleScene/*.bytes.meta

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +8,12 @@ public class CannonControl : MonoBehaviour
     public bool sideMod;
     public float shotDelay;
     private int shotCount;
+    [Header("발사 쿨타임")]
+    [Tooltip("한 번 쏜 뒤 다시 쏠 수 있게 되기까지의 시간(초).")]
+    public float fireCooldown = 4f;
+    [Tooltip("남은 쿨타임(초). 읽기 전용.")]
+    public float cooldownRemaining;
+    private float _nextFireTime;
     public float maxView;
     public Camera mainCamera;
     public Transform target;               // Ÿ�� Transform
@@ -39,10 +45,16 @@ public class CannonControl : MonoBehaviour
         // 인스펙터에서 현재 어느 쪽을 겨누는지 보이도록 매 프레임 갱신한다.
         int sideIndex = GetFiringSideIndex();
 
+        cooldownRemaining = Mathf.Max(0f, _nextFireTime - Time.time);
+
         if (shotMod)
         {
-            if (Input.GetMouseButtonDown(0))
+            // 예전에는 클릭할 때마다 코루틴이 하나씩 더 돌아서 연타하면 그만큼 계속 발사됐다.
+            // 눌린 순간에 다음 발사 가능 시각을 밀어 두면 연타해도 한 번만 나간다.
+            if (Input.GetMouseButtonDown(0) && cooldownRemaining <= 0f)
             {
+                _nextFireTime = Time.time + fireCooldown;
+                cooldownRemaining = fireCooldown;
                 StartCoroutine(ShotPlay(sideIndex));
             }
         }
@@ -100,6 +112,8 @@ public class CannonControl : MonoBehaviour
 
         bullet.shotMode = ShotMode.Player;
         bullet.useFaction = true;
+        // 함선 메뉴(Y)의 함포 강화 반영: 레벨당 +15% (ShipUpgrades)
+        if (ShipUpgrades.Instance != null) bullet.damage *= ShipUpgrades.Instance.CannonDamageMultiplier;
 
         Transform ship = shipTransform != null ? shipTransform : transform;
         ShipFaction sf = ship.GetComponentInParent<ShipFaction>();

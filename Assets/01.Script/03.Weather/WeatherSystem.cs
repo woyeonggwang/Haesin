@@ -114,6 +114,20 @@ public class WeatherSystem : MonoBehaviour
 
     private HDAdditionalLightData _sunHD;
 
+    [Header("비 가림 (동굴·지붕)")]
+    [Tooltip("켜면 비 영역 위로 레이를 쏘아 바위·지붕에 가려진 만큼 비를 줄인다. 베이스 동굴 안에서 비가 뚫고 내리지 않게 하기 위한 것.")]
+    public bool rainCoverCheck = true;
+    [Tooltip("가림 판정 레이를 쏠 때 무시할 레이어(물, 트리거 등). 비워두면 Water 레이어만 뺀다.")]
+    public LayerMask rainCoverIgnore;
+    [Tooltip("가림 판정 샘플 반경(m). 비 영역 크기 정도. 3×3 격자로 쏜다.")]
+    public float rainCoverSampleRadius = 40f;
+    [Tooltip("가림 비율이 바뀔 때 비가 따라가는 속도(초).")]
+    public float rainCoverSmoothTime = 0.8f;
+    [Tooltip("읽기 전용: 현재 가려진 비율 0(노천)~1(완전 실내).")]
+    public float rainCovered01;
+    private float _rainCoverVel;
+    private float _nextCoverCheck;
+
     private RainScript _rainScript;      // RainMaker 사용 시
     private Transform _rainPrefabTr;
     private ParticleSystem _rain;        // 자체 파티클 사용 시
@@ -312,6 +326,39 @@ public class WeatherSystem : MonoBehaviour
     /// 빗줄기에 일정한 기울기를 준다. WindZone 처럼 가속도로 미는 것이 아니라
     /// 고정 속도라서 수명이 길어도 한쪽으로 무한히 밀리지 않는다.
     /// </summary>
+    /// <summary>
+    /// 비 영역 위가 얼마나 가려졌는지(동굴 천장·지붕) 재서 rainCovered01 에 넣는다.
+    /// rainFollowTarget 주변 3×3 지점에서 위로 레이를 쏘고, 막힌 비율을 부드럽게 따라간다.
+    /// 레이는 배 돛대보다 높은 곳(+35m)에서 시작해 자기 배는 맞지 않고, 트리거(볼륨)는 무시한다.
+    /// </summary>
+    void UpdateRainCover()
+    {
+        if (!rainCoverCheck) { rainCovered01 = 0f; return; }
+        Transform origin = rainFollowTarget != null ? rainFollowTarget : (Camera.main != null ? Camera.main.transform : null);
+        if (origin == null) { rainCovered01 = 0f; return; }
+
+        float target = rainCovered01;
+        if (Time.time >= _nextCoverCheck)
+        {
+            _nextCoverCheck = Time.time + 0.25f;
+            int mask = rainCoverIgnore.value != 0 ? ~rainCoverIgnore.value : ~(1 << LayerMask.NameToLayer("Water"));
+            int blocked = 0, total = 0;
+            float r = Mathf.Max(1f, rainCoverSampleRadius);
+            for (int ix = -1; ix <= 1; ix++)
+                for (int iz = -1; iz <= 1; iz++)
+                {
+                    Vector3 p = origin.position + new Vector3(ix * r, 0f, iz * r);
+                    p.y = 35f;
+                    total++;
+                    if (Physics.Raycast(p, Vector3.up, 600f, mask, QueryTriggerInteraction.Ignore)) blocked++;
+                }
+            target = total > 0 ? blocked / (float)total : 0f;
+            _lastCoverTarget = target;
+        }
+        rainCovered01 = Mathf.SmoothDamp(rainCovered01, _lastCoverTarget, ref _rainCoverVel, Mathf.Max(0.01f, rainCoverSmoothTime));
+    }
+    private float _lastCoverTarget;
+
     void ApplyRainWind(float intensity)
     {
         if (_rainFallPS == null) return;
@@ -629,7 +676,8 @@ public class WeatherSystem : MonoBehaviour
         // ---- 비 (RainMaker) ----
         if (_rainScript != null)
         {
-            _rainScript.RainIntensity = Mathf.Clamp01(w.rainIntensity);            ApplyRainWind(w.rainIntensity);            ApplyRainFallSpeed(w.rainFallSpeedMultiplier);
+            UpdateRainCover();
+            _rainScript.RainIntensity = Mathf.Clamp01(w.rainIntensity) * (1f - rainCovered01);            ApplyRainWind(w.rainIntensity);            ApplyRainFallSpeed(w.rainFallSpeedMultiplier);
             ApplyRainDropColor();
 
 
@@ -644,7 +692,8 @@ public class WeatherSystem : MonoBehaviour
         if (_rain != null)
         {
             var em = _rain.emission;
-            em.rateOverTime = maxRainEmission * Mathf.Clamp01(w.rainIntensity);
+            UpdateRainCover();
+            em.rateOverTime = maxRainEmission * Mathf.Clamp01(w.rainIntensity) * (1f - rainCovered01);
             if (rainFollowTarget != null)
             {
                 // 위치만 따라가고 회전은 항상 월드 기준으로 고정한다.

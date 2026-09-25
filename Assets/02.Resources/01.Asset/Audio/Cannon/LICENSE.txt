@@ -1,0 +1,4 @@
+cannon_fire_thimras_cc0.ogg / cannon_hit_thimras_cc0.ogg : OpenGameArt.org, 작성자 Thimras, CC0 (퍼블릭 도메인)
+  https://opengameart.org/content/cannon-fire , https://opengameart.org/content/cannon-hit
+cannonball_whistle_synth.wav : Claude 가 Unity 에디터 안에서 절차적으로 합성한 소리(사인 스윕 + 저역 노이즈, 3초 루프). 저작권 없음.
+다운로드/생성: 2026-09-19

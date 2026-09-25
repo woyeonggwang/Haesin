@@ -31,6 +31,12 @@ public class NavyPanokAI : NavyShipBase
     [Tooltip("표적에게 이보다 가까워지면 붙지 않고 거리를 벌린다(m). 판옥선은 접현전을 피한다.")]
     public float keepAwayDistance = 28f;
 
+    [Header("부스트 판단")]
+    [Tooltip("추격 중 표적이 이 거리보다 멀면 부스트를 켠다(m). 가까워지면 끄고 교전 자세를 잡는다.")]
+    public float boostChaseDistance = 90f;
+    [Tooltip("아군 지원 요청으로 달려갈 때도 부스트를 쓴다.")]
+    public bool boostWhenResponding = true;
+
     [Header("아군 지원")]
     [Tooltip("교전을 시작하면 이 반지름 안의 아군 관군함을 불러 모은다(m).")]
     public float callRadius = 300f;
@@ -65,6 +71,7 @@ public class NavyPanokAI : NavyShipBase
     protected override void TickBehaviour()
     {
         responding = Time.time < _respondUntil;
+        wantBoost = false;
         UpdateState();
 
         switch (state)
@@ -110,9 +117,16 @@ public class NavyPanokAI : NavyShipBase
         if (_target == null)
         {
             // 지원 요청만 받은 상태 - 집결 지점으로.
-            if (responding) SailTowards(_rallyPoint, maxSpeed);
+            if (responding)
+            {
+                wantBoost = boostWhenResponding && Vector3.Distance(transform.position, _rallyPoint) > boostChaseDistance;
+                SailTowards(_rallyPoint, maxSpeed);
+            }
             return;
         }
+
+        // 멀리 있는 표적은 부스트로 따라붙는다. 플레이어만 부스트가 있으면 관군을 너무 쉽게 따돌릴 수 있었다.
+        wantBoost = distanceToTarget > boostChaseDistance;
 
         // 표적의 현재 속도로 조금 앞을 예측해 요격 지점으로 향한다.
         Vector3 aim = _target.transform.position;

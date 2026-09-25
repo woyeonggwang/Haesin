@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -197,7 +197,11 @@ public class ShipBurnVisual : MonoBehaviour
 
                 string n = m.name.ToLower();
                 if (n.Contains("flag") || n.Contains("flg")) continue;   // 깃발은 태우지 않는다
+                if (n.StartsWith("crew_") || n.StartsWith("char_")) continue; // 선원·플레이어 캐릭터(임시 큐브)도 태우지 않는다
                 if (!m.HasProperty(IdBaseColor)) continue;
+                // 투명 머티리얼은 태우지 않는다. 판옥선 루트의 Capsule(물 차단/충돌용, New Material = 투명 알파 0)이
+                // 불투명 Burn 셰이더로 바뀌면서 배 밑에 흰 캡슐이 드러났었다 (2026-09-17).
+                if (IsTransparent(m)) continue;
 
                 Material inst;
                 if (!map.TryGetValue(m, out inst))
@@ -349,5 +353,14 @@ public class ShipBurnVisual : MonoBehaviour
         tex.SetPixels32(px);
         tex.Apply(true);
         return tex;
+    }
+
+
+    static bool IsTransparent(Material m)
+    {
+        if (m.renderQueue >= 2450) return true;
+        if (m.HasProperty("_SurfaceType") && m.GetFloat("_SurfaceType") > 0.5f) return true;
+        if (m.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")) return true;
+        return false;
     }
 }

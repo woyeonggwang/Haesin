@@ -11,12 +11,12 @@ public class BaseSafeZone : MonoBehaviour
 {
     public static BaseSafeZone Instance { get; private set; }
 
-    [Tooltip("안전지대 반경(m). 기준점에서 이 거리 안은 적이 스폰되지도 들어오지도 않는다.")]
-    public float radius = 200f;
+    [Tooltip("안전지대 반경(m). 기준점에서 이 거리 안은 적이 스폰되지도 들어오지도 않는다. 섬(동굴 포함)의 가장 먼 끝이 리스폰 지점에서 약 255 m 라 200 이면 섬 남쪽 끝 바깥에 적이 생기고 좌초했다 → 350.")]
+    public float radius = 350f;
     [Tooltip("기준점. 비워두면 이 오브젝트 위치(리스폰 지점에 붙여 두면 자동으로 같이 움직인다).")]
     public Transform center;
 
-    const float DefaultRadius = 200f;
+    const float DefaultRadius = 350f;
 
     void OnEnable() { Instance = this; }
     void OnDisable() { if (Instance == this) Instance = null; }
@@ -38,6 +38,14 @@ public class BaseSafeZone : MonoBehaviour
     {
         Vector3 d = worldPos - Center; d.y = 0f;
         float r = Radius;
+        return d.sqrMagnitude < r * r;
+    }
+
+    /// <summary>수평 거리 기준으로 (반경 + extra) 안인지. 함대처럼 퍼져 있는 대상을 검사할 때.</summary>
+    public static bool Contains(Vector3 worldPos, float extra)
+    {
+        Vector3 d = worldPos - Center; d.y = 0f;
+        float r = Radius + extra;
         return d.sqrMagnitude < r * r;
     }
 

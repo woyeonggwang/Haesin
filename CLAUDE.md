@@ -59,7 +59,7 @@
                           CharacterTestController·TestCircleWalker(CharacterTest 전용)
   09.Crew/                ShipCrew, CrewMember
   10.UI/                  MapSystem(+MapSystem.Atlas.cs), UIKit, GameMenuPause, ShowcaseViewer, ShipMenu, InventoryMenu, MenuArt, ResourceBar, UITooltip
-  11.Audio/               ShipAudio, SeaAmbientAudio, OneShotAudio, BulletAudio, SwordAudio
+  11.Audio/               ShipAudio, SeaAmbientAudio, OneShotAudio, BulletAudio, SwordAudio, FootstepAudio
   12.Economy/             PlayerResources, ShipUpgrades
   13.Combat/              AttackData, CombatStats, SwordCombatant, PlayerCombatController, EnemySwordAI,
                           CombatHUD, WeaponHolder, HwandoGripIK, CombatAutoTest(테스트 전용)
@@ -75,7 +75,7 @@
   Models/      JoseonTongsinsaseon, SwampBridge4k, Free_Rocks
   VFX/         RainMaker, LightningBolt, Hovl Studio, CamelotVFX_ Fire&Smoke(출처 확인 필요)
   Textures/    TextureHaven, ObjectiveEnvironment_Assets
-  Audio/(Sea, Cannon, Sword), Materials/, TerrainLayers/
+  Audio/(Sea, Cannon, Sword, Footstep), Materials/, TerrainLayers/
 Resources/            ShipMenuArt/, MenuCommonArt/, MapAtlas/ (런타임 Resources.Load)
 StreamingAssets/Flags/  깃발 이미지(png/jpg) 넣는 곳
 MagicaCloth2/         Magica Cloth 2
@@ -109,7 +109,7 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 - `MerchantAI`(Navy, 비무장): Sail/Follow/Flee. 격침 시 `BountySystem.ReportPlunder`.
 - `BountySystem`: 플레이어가 상선을 약탈할 때만 현상금 +1(120 s 후 개별 만료) → `EnemyFleetSpawner.maxNavyFleets` 증가(base 3, hardMax 8).
 - `EnemyFleetSpawner`: 씬의 원본 배(anteck/seki/panok_navy/merchant)가 템플릿 — Start 에서 끄고 복제 스폰. 플레이어 기준 250~500 m, 거리 분포 `u^(1/1.8)`, 900 m 밖 정리, 8 s 간격.
-- **베이스 안전지대** `BaseSafeZone`(PlayerRespawnPoint 에 부착, 반경 200): 스폰 위치에서 제외, AI 목적지를 경계 밖으로 밀어냄, 안에 있는 배는 표적 아님.
+- **베이스 안전지대** `BaseSafeZone`(PlayerRespawnPoint 에 부착, **반경 350** — 섬·동굴의 가장 먼 끝이 리스폰 지점에서 약 255 m): 스폰 위치에서 제외, AI 목적지를 경계 밖으로 밀어냄, 안에 있는 배는 표적 아님. 스포너는 함대 중심을 반경 + 흩어짐 + `safeZoneMargin`(60) 밖에서 뽑고, 배 한 척씩도 경계 + 60 밖으로 밀어냄.
 
 ### 물 (HDRP Water)
 - `WaterHeightUtil.Sample` = `ProjectPointOnWaterSurface` 래퍼(캐시 없음).
@@ -150,6 +150,7 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 - `ShipAudio`(panok): 선체 물살(0.8→12 m/s, 최대 0.55) + 노 소리(젓기 속도 기준, 최대 0.35).
 - `BulletAudio`(포탄 템플릿 `Sphere`): 발사 0.5(max 900 m) / 비행 휘파람(합성 음원, 속도 3 m/s 아래 0) / 명중 0.5(max 600 m). `OneShotAudio` = 감쇠 지정 가능한 원샷.
 - `SwordAudio`(캐릭터): 휘두르기 0.1(windup − 0.28 s 에 재생), 막기·튕겨내기 부딪힘 3종 0.6, 뽑기·넣기 각 3종 0.1(넣기 소리는 CC0 조각으로 합성). 들어 보고 고른 것 아님.
+- `FootstepAudio`(캐릭터, OnFoot 에서만): 발 닿음 = `FootIK.animLiftLeft/Right`(IK 전 애니메이션 발바닥 높이)가 0.05 m 위로 들렸다가 0.025 m 아래로 내려올 때, 캐릭터 속도 0.4 m/s 이상, 같은 발 0.18 s 간격. 바닥 = 발 아래 레이: 터레인은 가장 진한 레이어 이름(grass/forrest → 풀, sand/gravel → 모래, 그 밖 → 돌), 그 밖 콜라이더는 이름(자신+최상위)에 stair/bridge/deck/wood/dock → 나무, rock/cave/stone/cliff → 돌, 없으면 나무. 음원 Kenney Impact Sounds(CC0) wood/grass/snow(모래용)/concrete(돌용) 각 5개, 모노, 볼륨 0.1(사용자 지정, 달리기 ×1.3), 3D min 4 / max 30 m, 피치 0.92~1.08. 측정: 걷기 0.41 s 간격(선착장·계단 모두). 들어 보고 고른 것 아님.
 
 ### UI
 - 공통 일시정지 `GameMenuPause`(static): timeScale 0, 물 timeMultiplier 0, 소리 정지, `disableWhileOpen`(CameraFollow, CannonControl, WeatherTestKeys, PlayerOrbitCamera, PlayerCombatController) 끔. 한 번에 하나. `MapSystem.disableWhileOpen` 은 씬 직렬화 값(같은 목록으로 맞춰 둠).
@@ -185,7 +186,10 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 ### 선착장 · 리스폰 · 안전지대
 - 선착장 `BaseGroup/swamp-bridge-4k-ready_2016`(x −142~−121, z −6.6~−0.3), 판자 윗면 y 4.745. 메시 7개에 MeshCollider.
 - 하차 지점 `LandingPoint_Dock` (−125, 6.5, −3.4), dockRange 35 — 아래로 레이를 쏴 판자 위에 세움.
-- 리스폰 `PlayerRespawnPoint` (−110, 0.3, −4) + `BaseSafeZone` 반경 200.
+- 리스폰 `PlayerRespawnPoint` (−110, 0.3, −4) + `BaseSafeZone` 반경 350.
+
+### 섬 배치 계획 (`IslandPlan`, 임시)
+- 계획(사용자): base 동남쪽에 일본 마을 중간섬 700×700, 서북쪽에 조선 큰섬 1000×1000 1개 + 작은섬 400×400 2개. 크기 확인용 큐브 4개(높이 35 m, 윗면 해발 15 m, **콜라이더 없음**)를 `IslandPlan` 아래에 두고 `MapSystem.mapGeometryRoots` 에 등록 — 지도는 Play 시작 때 구우므로 옮긴 뒤 Play 하면 반영. 위치는 사용자가 조정 중.
 
 ### 원거리 표시
 - Main Camera far clip 4000, 글로벌 Fog `maximumHeight` 350(돔 전체가 높이 안개 안). 4000 m 에서 투과율 1 % 대라 자연스럽게 사라짐.
@@ -265,6 +269,7 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 | 폭풍우 때 파도가 선착장 위로 올라옴 | 먼바다 너울 ±20 m(바람 140) | `WaterShoreMask` 로 육지 근처 파도 감쇠 |
 | 구름이 안 늘어남 | CloudLayer opacity 는 전체 페이드 | 채널 R/G/B/A 순차 |
 | 스폰이 코앞처럼 느껴짐 | 거리 균등 분포 | `u^(1/bias)` |
+| 베이스(섬) 바로 옆에 적 함대가 뜨고 좌초 | 안전지대 반경 200 < 섬 끝(255 m), 스포너가 함대 중심만 검사(흩어진 배는 안쪽에 생길 수 있음) | 반경 350, 배마다 검사 |
 | 플레이 중 스크립트 수정 후 RainMaker NRE 매 프레임 | 도메인 리로드로 비직렬화 필드 null, Start 재실행 안 됨 | `BaseRainScript.Update` 앞 null 가드(`[HaeSin 수정]`) + 플레이 중 저장 금지 |
 
 ### 피해·불·연출
@@ -315,6 +320,7 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 | 하차 후 모델 Animator 에 Speed 가 안 감 | OnFootRoot 를 켠 뒤 외형을 옮김(OnEnable 에서 Animator 탐색) | 옮긴 뒤 켜기 + Update 재탐색 |
 | 계단에서 발이 디딤판을 뚫음 | 몸(CharacterController)은 디딤판 밑 터레인 경사를 걷고 발 IK 없음 | `FootIK` + 디딤판 StepSurface 레이어(몸은 통과) |
 | 다시 탔을 때 카메라가 기울어 물속을 비춤 | PlayerOrbitCamera 가 CameraPivot 자식인 Main Camera 의 월드 자세를 덮어씀 | 하차 때 로컬 자세 저장, 승선 때 복구 |
+| 계단에서 발소리가 1~2 초씩 빠짐 | 레이로 잰 발 높이는 발 아래 디딤판이 바뀌어 '들림'이 안 잡힘 | FootIK 의 애니메이션(IK 전) 발 높이로 판정 |
 | 표정 키를 켜면 얼굴 음영이 전부 바뀜 | Blend Shape Normals = Calculate | None + `BlinkBlendShapeNormals` |
 | 블렌드셰이프 법선 변화가 대부분 0 | `Vector3.normalized` 는 길이 1e-5 미만이면 0 | 직접 길이로 나눔 |
 | 편집 모드에서 SetBlendShapeWeight 가 캡처에 안 나옴 | 같은 호출 안 렌더는 스키닝 미갱신 | Play 에서, 다음 호출에 렌더 |
@@ -356,6 +362,7 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 - [ ] 콘솔 `Leak Detected : Persistent allocates 127 individual allocations` 경고 1건(Play 여러 번 후) — 출처 확인 필요.
 
 ### 월드
+- [ ] 새 섬을 만들면 `WaterShoreMask` 범위(현재 중심 (0,0) 1000 m)를 넓혀 다시 구워야 함, 안전지대·스폰 규칙도 섬별로 정해야 함.
 - [ ] 터레인 브러시 다듬기, 선착장 주변 정리, 나무·풀 없음. 제대로 된 횃불 메시 없음, 횃불 불티가 많음(모닥불용 파티클).
 - [ ] APV·리플렉션 프로브 최종 베이크(바위 위치 확정 후).
 

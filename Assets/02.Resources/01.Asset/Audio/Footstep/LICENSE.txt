@@ -1,0 +1,4 @@
+발소리 - Kenney 'Impact Sounds' (CC0 1.0, 퍼블릭 도메인)
+https://kenney.nl/assets/impact-sounds
+원본 파일 그대로(footstep_wood/grass/concrete/snow_000~004.ogg). 원본 라이선스 전문은 License_Kenney.txt.
+다운로드: 2026-09-25, Claude (Unity MCP)

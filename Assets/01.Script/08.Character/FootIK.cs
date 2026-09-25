@@ -39,6 +39,8 @@ public class FootIK : MonoBehaviour
     [Header("상태 (읽기 전용)")]
     public float pelvisOffset;
     public float leftDelta, rightDelta;
+    [Tooltip("애니메이션(IK 전) 발바닥이 피벗 면에서 들린 높이(m). FootstepAudio 가 발 닿음 판정에 씀 — 계단에서도 애니메이션 박자 그대로.")]
+    public float animLiftLeft, animLiftRight;
 
     Animator _anim; PlayerCharacter _pc; SwordCombatant _sc; CharacterController _cc;
     float _w;
@@ -79,6 +81,8 @@ public class FootIK : MonoBehaviour
     {
         if (layerIndex != 0 || _anim == null) return;
         float dt = Time.deltaTime;
+        animLiftLeft = _anim.GetIKPosition(AvatarIKGoal.LeftFoot).y - _anim.leftFeetBottomHeight - transform.position.y;
+        animLiftRight = _anim.GetIKPosition(AvatarIKGoal.RightFoot).y - _anim.rightFeetBottomHeight - transform.position.y;
         _w = Mathf.MoveTowards(_w, WantActive() ? weight : 0f, blendSpeed * dt);
         if (_w <= 0.001f)
         {

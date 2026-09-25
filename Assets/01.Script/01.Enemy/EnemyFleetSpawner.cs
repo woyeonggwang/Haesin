@@ -65,6 +65,8 @@ public class EnemyFleetSpawner : MonoBehaviour
     public float checkInterval = 8f;
     [Tooltip("시작하자마자 함대를 하나 스폰할지.")]
     public bool spawnOnStart = true;
+    [Tooltip("베이스 안전지대 경계에서 함대(흩어진 배 포함)가 더 떨어져야 하는 여유(m). 예전엔 함대 중심만 검사해서 흩어진 배가 안전지대 안·섬 바로 옆에 생겼다.")]
+    public float safeZoneMargin = 60f;
 
     [Header("상태 (읽기 전용)")]
     [Tooltip("활동 중인 왜군 함대 수.")]
@@ -146,7 +148,7 @@ public class EnemyFleetSpawner : MonoBehaviour
     }
 
     /// <summary>플레이어 기준 min~max 거리의 무작위 방향에 함대 중심을 잡는다.</summary>
-    Vector3 PickFleetCenter()
+    Vector3 PickFleetCenter(float spread)
     {
         float angle = Random.Range(0f, Mathf.PI * 2f);
 
@@ -161,10 +163,10 @@ public class EnemyFleetSpawner : MonoBehaviour
             float dist = Mathf.Lerp(minSpawnDistance, maxSpawnDistance, t);
             center = _player.position + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * dist;
             center.y = 0f;
-            if (!BaseSafeZone.Contains(center)) return center;
+            if (!BaseSafeZone.Contains(center, spread + safeZoneMargin)) return center;
             angle = Random.Range(0f, Mathf.PI * 2f);
         }
-        center = BaseSafeZone.PushOutside(center, 80f);
+        center = BaseSafeZone.PushOutside(center, spread + safeZoneMargin + 20f);
         center.y = 0f;
         return center;
     }
@@ -183,7 +185,7 @@ public class EnemyFleetSpawner : MonoBehaviour
     {
         if (_player == null || merchantTemplate == null) return;
 
-        Vector3 center = PickFleetCenter();
+        Vector3 center = PickFleetCenter(merchantSpacing * Mathf.Max(1, merchantCount.y) * 0.75f);
         float heading = Random.Range(0f, 360f);
         Quaternion rot = Quaternion.Euler(0f, heading, 0f);
 
@@ -197,6 +199,7 @@ public class EnemyFleetSpawner : MonoBehaviour
             float back = i * merchantSpacing * 0.75f;
             float side = (i == 0) ? 0f : ((i % 2 == 1) ? 1f : -1f) * merchantSpacing * 0.5f;
             Vector3 pos = center + rot * new Vector3(side, 0f, -back);
+            pos = BaseSafeZone.PushOutside(pos, safeZoneMargin); // 한 척이라도 안전지대에 걸치면 밖으로
             pos.y = 0f;
 
             GameObject ship = Instantiate(merchantTemplate, pos, rot);
@@ -221,7 +224,7 @@ public class EnemyFleetSpawner : MonoBehaviour
     {
         if (_player == null || navyPanokTemplate == null) return;
 
-        Vector3 center = PickFleetCenter();
+        Vector3 center = PickFleetCenter(navyFleetSpread);
         var fleet = new List<GameObject>();
 
         int n = Random.Range(navyCount.x, navyCount.y + 1);
@@ -237,7 +240,7 @@ public class EnemyFleetSpawner : MonoBehaviour
     {
         if (_player == null || anteckTemplate == null || sekiTemplate == null) return;
 
-        Vector3 center = PickFleetCenter();
+        Vector3 center = PickFleetCenter(fleetSpread);
         var fleet = new List<GameObject>();
 
         int nAnteck = Random.Range(anteckCount.x, anteckCount.y + 1);
@@ -257,6 +260,8 @@ public class EnemyFleetSpawner : MonoBehaviour
     {
         Vector2 r = Random.insideUnitCircle * spread;
         Vector3 pos = center + new Vector3(r.x, 0f, r.y);
+        pos = BaseSafeZone.PushOutside(pos, safeZoneMargin); // 한 척이라도 안전지대에 걸치면 밖으로
+        pos.y = 0f;
 
         GameObject ship = Instantiate(template, pos, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
         ship.SetActive(true);

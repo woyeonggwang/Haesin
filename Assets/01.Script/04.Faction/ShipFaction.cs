@@ -58,10 +58,16 @@ public class ShipFaction : MonoBehaviour
         All.Remove(this);
     }
 
-    /// <summary>상대가 나의 적인가.</summary>
+    /// <summary>
+    /// 상대가 나의 적인가. 관군 ↔ 일본군은 늘 적. 플레이어(해적)와 두 진영 사이는 우호도(ReputationSystem)로 정한다 —
+    /// 중립이면 서로 적이 아니다(예전엔 "나와 다른 진영이면 적" 이라 관군·일본군 모두 늘 플레이어를 공격했다).
+    /// </summary>
     public bool IsHostileTo(ShipFaction other)
     {
-        return other != null && other != this && other.faction != faction;
+        if (other == null || other == this || other.faction == faction) return false;
+        if (faction == Faction.Pirate) return ReputationSystem.PlayerHostileWith(other.faction);
+        if (other.faction == Faction.Pirate) return ReputationSystem.PlayerHostileWith(faction);
+        return true;
     }
 
     /// <summary>
@@ -80,7 +86,7 @@ public class ShipFaction : MonoBehaviour
         {
             ShipFaction s = All[i];
             if (s == null || !self.IsHostileTo(s)) continue;
-            if (!IsTargetable(s)) continue;
+            if (!IsTargetableBy(self, s)) continue;
 
             float d = (s.transform.position - p).sqrMagnitude;
             if (d < bestSqr)
@@ -102,6 +108,14 @@ public class ShipFaction : MonoBehaviour
         ShipHealth h = s.GetComponent<ShipHealth>();
         if (h != null && (h.isDead || h.isSinking)) return false;
         if (BaseSafeZone.Contains(s.transform.position)) return false;
+        return true;
+    }
+
+    /// <summary>IsTargetable + 공격자 기준 제한: 다른 진영의 영해(FactionTerritory) 안에 있는 배는 표적이 아니다.</summary>
+    public static bool IsTargetableBy(ShipFaction attacker, ShipFaction s)
+    {
+        if (!IsTargetable(s)) return false;
+        if (attacker != null && FactionTerritory.ProtectsFrom(attacker.faction, s.transform.position)) return false;
         return true;
     }
 

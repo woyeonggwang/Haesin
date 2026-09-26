@@ -148,27 +148,28 @@ public class EnemyFleetSpawner : MonoBehaviour
     }
 
     /// <summary>플레이어 기준 min~max 거리의 무작위 방향에 함대 중심을 잡는다.</summary>
-    Vector3 PickFleetCenter(float spread)
+    bool PickFleetCenter(float spread, Faction faction, out Vector3 center)
     {
-        float angle = Random.Range(0f, Mathf.PI * 2f);
-
         // 거리를 균등하게 뽑으면 절반이 (min+max)/2 안쪽에 몰려서 적이 코앞에 나타난 것처럼 보인다.
         // 0~1 난수에 거듭제곱을 씌워 분포를 먼 쪽으로 민다. bias 가 1이면 예전과 같은 균등 분포.
-        Vector3 center = Vector3.zero;
-        // 베이스 안전지대(선착장 기준 반경) 안에는 스폰하지 않는다. 몇 번 다시 뽑고, 그래도 안이면 경계 밖으로 밀어낸다.
+        // 베이스 안전지대 안, 섬 해안(FactionTerritory inner), 다른 진영의 영해(outer)에는 스폰하지 않는다.
+        // 자기 진영 영해에서는 육지에 가까울수록 확률이 줄어든다(SpawnWeight). 12번 뽑아 모두 실패하면 이번엔 스폰하지 않는다.
+        center = Vector3.zero;
         for (int attempt = 0; attempt < 12; attempt++)
         {
+            float angle = Random.Range(0f, Mathf.PI * 2f);
             float u = Random.value;
             float t = Mathf.Pow(u, 1f / Mathf.Max(0.01f, spawnDistanceBias));
             float dist = Mathf.Lerp(minSpawnDistance, maxSpawnDistance, t);
-            center = _player.position + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * dist;
-            center.y = 0f;
-            if (!BaseSafeZone.Contains(center, spread + safeZoneMargin)) return center;
-            angle = Random.Range(0f, Mathf.PI * 2f);
+            Vector3 c = _player.position + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * dist;
+            c.y = 0f;
+            if (BaseSafeZone.Contains(c, spread + safeZoneMargin)) continue;
+            float w = FactionTerritory.SpawnWeight(faction, c);
+            if (w <= 0f || Random.value > w) continue;
+            center = c;
+            return true;
         }
-        center = BaseSafeZone.PushOutside(center, spread + safeZoneMargin + 20f);
-        center.y = 0f;
-        return center;
+        return false;
     }
 
     /// <summary>
@@ -185,7 +186,8 @@ public class EnemyFleetSpawner : MonoBehaviour
     {
         if (_player == null || merchantTemplate == null) return;
 
-        Vector3 center = PickFleetCenter(merchantSpacing * Mathf.Max(1, merchantCount.y) * 0.75f);
+        Vector3 center;
+        if (!PickFleetCenter(merchantSpacing * Mathf.Max(1, merchantCount.y) * 0.75f, Faction.Navy, out center)) return;
         float heading = Random.Range(0f, 360f);
         Quaternion rot = Quaternion.Euler(0f, heading, 0f);
 
@@ -200,6 +202,7 @@ public class EnemyFleetSpawner : MonoBehaviour
             float side = (i == 0) ? 0f : ((i % 2 == 1) ? 1f : -1f) * merchantSpacing * 0.5f;
             Vector3 pos = center + rot * new Vector3(side, 0f, -back);
             pos = BaseSafeZone.PushOutside(pos, safeZoneMargin); // 한 척이라도 안전지대에 걸치면 밖으로
+            pos = FactionTerritory.PushOut(Faction.Navy, pos, 20f);
             pos.y = 0f;
 
             GameObject ship = Instantiate(merchantTemplate, pos, rot);
@@ -224,7 +227,8 @@ public class EnemyFleetSpawner : MonoBehaviour
     {
         if (_player == null || navyPanokTemplate == null) return;
 
-        Vector3 center = PickFleetCenter(navyFleetSpread);
+        Vector3 center;
+        if (!PickFleetCenter(navyFleetSpread, Faction.Navy, out center)) return;
         var fleet = new List<GameObject>();
 
         int n = Random.Range(navyCount.x, navyCount.y + 1);
@@ -240,7 +244,8 @@ public class EnemyFleetSpawner : MonoBehaviour
     {
         if (_player == null || anteckTemplate == null || sekiTemplate == null) return;
 
-        Vector3 center = PickFleetCenter(fleetSpread);
+        Vector3 center;
+        if (!PickFleetCenter(fleetSpread, Faction.Japanese, out center)) return;
         var fleet = new List<GameObject>();
 
         int nAnteck = Random.Range(anteckCount.x, anteckCount.y + 1);
@@ -261,6 +266,8 @@ public class EnemyFleetSpawner : MonoBehaviour
         Vector2 r = Random.insideUnitCircle * spread;
         Vector3 pos = center + new Vector3(r.x, 0f, r.y);
         pos = BaseSafeZone.PushOutside(pos, safeZoneMargin); // 한 척이라도 안전지대에 걸치면 밖으로
+        var tf = template.GetComponent<ShipFaction>();
+        if (tf != null) pos = FactionTerritory.PushOut(tf.faction, pos, 20f);
         pos.y = 0f;
 
         GameObject ship = Instantiate(template, pos, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));

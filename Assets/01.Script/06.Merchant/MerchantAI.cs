@@ -59,7 +59,7 @@ public class MerchantAI : NavyShipBase
     }
 
     /// <summary>
-    /// 격침 = 약탈. 누가 마지막으로 때렸는지를 현상금 시스템에 넘긴다.
+    /// 격침 = 약탈. 우호도 변화는 ShipHealth.TakeDamage 가 처리하고 여기서는 기록만 남긴다.
     /// 플레이어(해적)가 털었으면 수배가 붙고, 왜군이 털었으면 기록만 남는다.
     /// </summary>
     void OnDied()
@@ -69,7 +69,8 @@ public class MerchantAI : NavyShipBase
 
         Faction raider = _health != null ? _health.lastAttackerFaction : Faction.Pirate;
         bool known = _health != null && _health.hasLastAttacker;
-        BountySystem.ReportPlunder(raider, known, transform.position);
+        // 예전 현상금 시스템 대신 우호도: ShipHealth.TakeDamage 가 플레이어의 격침을 ReputationSystem 에 알린다.
+        if (known && raider == Faction.Pirate) Debug.Log("[Merchant] 플레이어가 상선을 약탈");
     }
 
     protected override void TickBehaviour()

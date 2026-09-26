@@ -130,9 +130,13 @@ public class ShipHealth : MonoBehaviour
     /// <summary>포탄 등이 이 배에 피해를 준다. 때린 쪽의 진영을 함께 남긴다.</summary>
     public void TakeDamage(float amount, Vector3 worldPoint, Faction attacker)
     {
+        bool wasDead = isDead;
         lastAttackerFaction = attacker;
         hasLastAttacker = true;
         TakeDamage(amount, worldPoint);
+        // 플레이어가 관군·일본 배를 때리면 우호도가 움직인다(격침한 한 방이면 격침 몫까지).
+        if (attacker == Faction.Pirate && !wasDead && amount > 0f && _faction != null && _faction.faction != Faction.Pirate)
+            ReputationSystem.ReportPlayerAttack(_faction.faction, isDead, GetComponent<MerchantAI>() != null);
     }
 
     /// <summary>포탄 등이 이 배에 피해를 준다.</summary>

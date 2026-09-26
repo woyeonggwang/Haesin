@@ -103,7 +103,7 @@ public abstract class EnemyShipBase : MonoBehaviour
         if (_self != null)
         {
             // 놓친 표적, 침몰 중인 표적, 베이스 안전지대로 들어간 표적은 놓아준다.
-            if (_targetShip != null && (!_targetShip.isActiveAndEnabled || !_self.IsHostileTo(_targetShip) || !ShipFaction.IsTargetable(_targetShip)))
+            if (_targetShip != null && (!_targetShip.isActiveAndEnabled || !_self.IsHostileTo(_targetShip) || !ShipFaction.IsTargetableBy(_self, _targetShip)))
                 _targetShip = null;
 
             ShipFaction nearest = ShipFaction.FindNearestHostile(_self, targetSearchRange);
@@ -207,6 +207,7 @@ public abstract class EnemyShipBase : MonoBehaviour
 
         candidate.y = 0f;
         candidate = BaseSafeZone.PushOutside(candidate, 25f); // 순찰 목적지도 베이스 안전지대 밖으로
+        candidate = FactionTerritory.PushOut(MyFaction, candidate, 25f); // 섬 해안·남의 영해 밖으로
         _patrolTarget = candidate;
         _waiting = false;
     }
@@ -235,6 +236,8 @@ public abstract class EnemyShipBase : MonoBehaviour
     // ---------- 공통 조종 ----------
 
     /// <summary>목표 지점을 향해 침로를 잡고 전진한다. 크게 틀어야 하면 속도를 줄인다.</summary>
+    Faction MyFaction { get { return _self != null ? _self.faction : Faction.Japanese; } }
+
     protected void SailTowards(Vector3 target, float speedCap)
     {
         // 베이스 안전지대 안으로는 들어가지 않는다: 목적지가 안이면 경계 밖으로 밀어낸다.
@@ -246,6 +249,10 @@ public abstract class EnemyShipBase : MonoBehaviour
             if (outDir.sqrMagnitude < 0.01f) outDir = FlatForward();
             target = BaseSafeZone.Center + outDir.normalized * (BaseSafeZone.Radius + 60f);
         }
+        // 섬(FactionTerritory): 자기 섬은 해안(inner) 밖, 남의 섬은 영해(outer) 밖으로만 다닌다.
+        target = FactionTerritory.PushOut(MyFaction, target, 25f);
+        Vector3 exitTerritory;
+        if (FactionTerritory.InsideBlocked(MyFaction, transform.position, out exitTerritory)) target = exitTerritory;
 
         Vector3 to = target - transform.position;
         to.y = 0f;

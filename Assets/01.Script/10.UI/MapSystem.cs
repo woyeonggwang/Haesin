@@ -257,7 +257,7 @@ public partial class MapSystem : MonoBehaviour
         {
             ShipFaction s = all[i];
             if (s == null || s == player || !s.isActiveAndEnabled) continue;
-            if (!player.IsHostileTo(s)) continue;
+            if (s.faction == Faction.Pirate) continue; bool hostileMark = player.IsHostileTo(s); // 우호도 도입 후: 중립인 배도 표시(적대면 크게)
             ShipHealth hp = s.GetComponent<ShipHealth>();
             if (hp != null && (hp.isSinking || hp.isDead)) continue;
 
@@ -270,7 +270,7 @@ public partial class MapSystem : MonoBehaviour
             m.rectTransform.localEulerAngles = new Vector3(0f, 0f, -s.transform.eulerAngles.y);
             Sprite ms = Tint(TriangleSprite(), MarkerColor(s));
             if (m.sprite != ms) m.sprite = ms;
-            float size = s.GetComponent<SekiScoutAI>() != null ? 11f : 14f;
+            float size = (s.GetComponent<SekiScoutAI>() != null ? 11f : 14f) * (hostileMark ? 1f : 0.75f);
             m.rectTransform.sizeDelta = new Vector2(size, size);
         }
         for (int i = used; i < _markerPool.Count; i++)

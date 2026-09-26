@@ -1,0 +1,4 @@
+선착장 텍스처 교체 (HaeSin, 2026-09-26)
+원본 나무 이미지: Poly Haven 'Wood Planks' (wood_planks_diff_2k.jpg), CC0 1.0 퍼블릭 도메인
+https://polyhaven.com/a/wood_planks
+*_Retex.jpg = 원래 SwampBridge 아틀라스(판자 배치·틈)의 밝기를 30 % 남기고 그 위에 위 나무 이미지를 입힘(판자 결은 U 방향, 기둥은 V 방향). 다운로드·가공: Claude (Unity MCP)

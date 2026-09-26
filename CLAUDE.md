@@ -50,20 +50,20 @@
   02.Water/               ShipBuoyancy, WaterHeightUtil, ShipWakeFoam, ShipBowWave, ShipDecalLOD,
                           WaterDecalLODManager, WaterRipple, WaterRippleSpawner, ShipImpactSensor, OarAnimator, WaterShoreMask
   03.Weather/             WeatherSystem, WeatherPreset, WeatherTestKeys, FlagWind, LightningStorm
-  04.Faction/             ShipFaction (+ enum Faction)
+  04.Faction/             ShipFaction (+ enum Faction), ReputationSystem, FactionTerritory
   05.Damage/              ShipHealth, ShipBurnVisual, PlayerHealthUI, DamageFXDistanceCull, BallisticAim
-  06.Merchant/            MerchantAI, BountySystem
-  07.Environment/         TorchFlicker, RespawnPoint, BaseSafeZone
+  06.Merchant/            MerchantAI
+  07.Environment/         TorchFlicker, RespawnPoint, BaseSafeZone, HarborMooring
   08.Character/           PlayerCharacter, LandingPoint, OnFootController, BoardingSystem, FootIK, PlayerOrbitCamera(+ICharacterMover),
                           CharacterOutfit, SpringBoneSystem, SkirtLegFollow, EyeBlink, FacialExpression,
                           CharacterTestController·TestCircleWalker(CharacterTest 전용)
   09.Crew/                ShipCrew, CrewMember
-  10.UI/                  MapSystem(+MapSystem.Atlas.cs), UIKit, GameMenuPause, ShowcaseViewer, ShipMenu, InventoryMenu, MenuArt, ResourceBar, UITooltip
+  10.UI/                  MapSystem(+MapSystem.Atlas.cs), UIKit, GameMenuPause, ShowcaseViewer, ShipMenu, InventoryMenu, MenuArt, ResourceBar, UITooltip, ReputationGaugeUI
   11.Audio/               ShipAudio, SeaAmbientAudio, OneShotAudio, BulletAudio, SwordAudio, FootstepAudio
   12.Economy/             PlayerResources, ShipUpgrades
   13.Combat/              AttackData, CombatStats, SwordCombatant, PlayerCombatController, EnemySwordAI,
                           CombatHUD, WeaponHolder, HwandoGripIK, CombatAutoTest(테스트 전용)
-  Editor/                 ARPGFabImportPostprocessor, BlinkBlendShapeNormals
+  Editor/                 ARPGFabImportPostprocessor, BlinkBlendShapeNormals, IslandTerrainGenerator
 02.Resources/00.Component/
   NewShip/               anteck, panok, seki 프리팹
   02.Water/              ShipRipple.prefab
@@ -87,7 +87,10 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 ## 3. 게임 시스템 (현재 상태)
 
 ### 진영 (`ShipFaction`)
-- `enum Faction { Pirate(플레이어), Navy(관군 판옥선 + 상선), Japanese(왜군 세키부네/안택선) }`. **적 판정은 `ShipFaction.IsHostileTo`("나와 다른 진영이면 적") 한 곳**. 관군은 플레이어·왜군 모두의 적.
+- `enum Faction { Pirate(플레이어), Navy(관군 판옥선 + 상선), Japanese(왜군 세키부네/안택선) }`. **적 판정은 `ShipFaction.IsHostileTo` 한 곳**: 관군 ↔ 왜군은 늘 적, 플레이어 ↔ 두 진영은 우호도(`ReputationSystem.PlayerHostileWith`)로 정함. 표적 판정은 `IsTargetableBy(공격자, 대상)` = IsTargetable + 다른 진영 영해(FactionTerritory outer) 안의 배는 표적 아님.
+- **우호도 `ReputationSystem`**(씬 루트 `ReputationSystem`, 예전 BountySystem 대체 — 스크립트 삭제됨): 게이지 하나 standing −100(관군 쪽) … 0 중립 … +100(일본 쪽). 관군 배(상선 포함)를 맞히면 +2, 일본 배를 맞히면 −2, 격침 한 방이면 군선 ±15 / 상선 ±10 추가(ShipHealth.TakeDamage 에서 attacker = Pirate 일 때). standing ≥ +25 → 관군 적대, ≤ −25 → 일본군 적대, 그 사이 중립(둘 다 공격 안 함). 초당 0.1 씩 0 으로 돌아옴. 시작 0. (사용자 지정: 한쪽이 오르면 다른 쪽이 내려가는 게이지 하나)
+- `ReputationGaugeUI`: 체력바 바로 아래(bottom 22, 폭 560) 게이지 — 왼쪽 파랑 = 관군 쪽 끝(일본군 적대 구간), 가운데 회색 중립, 오른쪽 빨강 = 일본 쪽 끝(관군 적대 구간), 흰 표시 = 현재 값, 아래 글자로 상태.
+- **영역 `FactionTerritory`**(각 섬 `Territory` 자식, 생성기가 만듦): inner(= 1.35 × 섬 반폭 + 60) 안에는 돌아다니는 배 스폰·진입 없음(정박선만), outer(= inner + 700) 안에는 그 섬 진영 배만 스폰(육지 쪽으로 갈수록 확률 ↓, smoothstep), 다른 진영 배는 들어오지 않고(순찰·항해 목적지를 밀어냄) 그 안의 배를 표적으로 삼지 않음(안전지대). 조선 섬 = Navy, 일본섬 = Japanese.
 - 활성 배는 `ShipFaction.All` 에 자기 등록. `FindNearestHostile(self, range)`, `Of(GameObject)`(부모까지 탐색 — 포탄은 자식 콜라이더에 맞음), `IsTargetable()`(완파·침몰 중·안전지대 안이면 표적 아님).
 - 태그(Player/Enemy) 판정은 `ShipFaction` 없는 대상용 폴백으로만 남음(`Bullet.ShouldExplode`, `EnemyShipBase.Retarget`).
 
@@ -106,8 +109,8 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 - `SekiScoutAI`(세키부네, 비무장): 발견 시 350 m 안 EnemyAI 에 25 s 경보, 55 m 거리 유지.
 - `NavyPanokAI`: EnemyAI 뼈대 + 접현 회피 28 m + 300 m 내 아군 소집. 추격 90 m 이상이면 부스트(×1.6).
 - 포격(`EnemyCannonControl`/`NavyCannonControl`): Broadside + 사거리(90/95) + 현측 55° 안일 때 일제사. 관군 최대 8문, 재장전 8 s.
-- `MerchantAI`(Navy, 비무장): Sail/Follow/Flee. 격침 시 `BountySystem.ReportPlunder`.
-- `BountySystem`: 플레이어가 상선을 약탈할 때만 현상금 +1(120 s 후 개별 만료) → `EnemyFleetSpawner.maxNavyFleets` 증가(base 3, hardMax 8).
+- `MerchantAI`(Navy, 비무장): Sail/Follow/Flee. 격침(약탈)은 우호도로 처리.
+- `EnemyFleetSpawner.PickFleetCenter(spread, 진영)`: BaseSafeZone + FactionTerritory.SpawnWeight 로 12번 뽑아 실패하면 그번엔 스폰 안 함. 배 한 척씩도 PushOut.
 - `EnemyFleetSpawner`: 씬의 원본 배(anteck/seki/panok_navy/merchant)가 템플릿 — Start 에서 끄고 복제 스폰. 플레이어 기준 250~500 m, 거리 분포 `u^(1/1.8)`, 900 m 밖 정리, 8 s 간격.
 - **베이스 안전지대** `BaseSafeZone`(PlayerRespawnPoint 에 부착, **반경 350** — 섬·동굴의 가장 먼 끝이 리스폰 지점에서 약 255 m): 스폰 위치에서 제외, AI 목적지를 경계 밖으로 밀어냄, 안에 있는 배는 표적 아님. 스포너는 함대 중심을 반경 + 흩어짐 + `safeZoneMargin`(60) 밖에서 뽑고, 배 한 척씩도 경계 + 60 밖으로 밀어냄.
 
@@ -117,7 +120,7 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 - `ShipWakeFoam`(WaterFoamGenerator), `ShipBowWave`(WaterDecal + `Water Decal Sample` 셰이더 — **키워드** `_TYPE_BOW_WAVE` 등으로 분기).
 - `ShipDecalLOD` + `WaterDecalLODManager`: HDRP 워터 데칼 **씬당 96개 상한** → 카메라 가까운 8척만 켬(150 m + 15 m 히스테리시스).
 - `WaterRippleSpawner`(풀: 충돌 8 / 항적 10 / 물보라 8), `ShipImpactSensor`(충돌 6프레임 전 속도로 세기 계산).
-- `WaterShoreMask`(Ocean): 육지 가까운 바다의 파도를 줄이는 `waterMask`(R 너울 / G agitation / B 리플 — CPU 시뮬레이션에도 반영)를 굽는다. 육지 = 위에서 쏜 레이가 처음 맞는 리지드바디 없는 콜라이더가 y −0.5 이상인 곳(동굴 지붕 밑 물도 포함). 중심 (0, 0), 1000 m, 1024², 육지 옆 R 0.1 / G 0.2 / B 0.6 → 200 m 에 걸쳐 1. 결과 `02.Resources/00.Component/02.Water/WaterShoreMask.png`. **터레인·마을을 바꾸면 컴포넌트 컨텍스트 메뉴 "해안 마스크 굽기"로 다시 굽는다.** 폭풍우(바람 140) 측정: 먼바다 −21.6~+18.4 m, 선착장 주변 −1.3~+0.2 m, 동굴 안 −3.5~+1.6 m.
+- `WaterShoreMask`(Ocean): 육지 가까운 바다의 파도를 줄이는 `waterMask`(R 너울 / G agitation / B 리플 — CPU 시뮬레이션에도 반영)를 굽는다. 육지 = 위에서 쏜 레이가 처음 맞는 리지드바디 없는 콜라이더가 y −0.5 이상인 곳(동굴 지붕 밑 물도 포함). 중심 (−588.5, 1478), 7146 m(base + 새 섬 전부), 1024²(칸 약 7 m), 육지 옆 R 0.1 / G 0.2 / B 0.6 → 200 m 에 걸쳐 1. 결과 `02.Resources/00.Component/02.Water/WaterShoreMask.png`. **터레인·마을을 바꾸면 컴포넌트 컨텍스트 메뉴 "해안 마스크 굽기"로 다시 굽는다.** 폭풍우(바람 140) 측정: 먼바다 −21.6~+18.4 m, 선착장 주변 −1.3~+0.2 m, 동굴 안 −3.5~+1.6 m.
 
 ### 날씨 (`WeatherSystem`)
 - 인스펙터 인라인 프리셋 리스트(SO 아님)를 가중치로 뽑아 25 s SmoothStep 블렌드. WaterSurface·CloudLayer(**cloudCoverage 는 R/G/B/A 채널을 순차로 켬**)·VolumetricClouds·하늘 노출·Fog(meanFreePath/tint 만)·태양 Lux·RainMaker 를 구동.
@@ -154,7 +157,7 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 
 ### UI
 - 공통 일시정지 `GameMenuPause`(static): timeScale 0, 물 timeMultiplier 0, 소리 정지, `disableWhileOpen`(CameraFollow, CannonControl, WeatherTestKeys, PlayerOrbitCamera, PlayerCombatController) 끔. 한 번에 하나. `MapSystem.disableWhileOpen` 은 씬 직렬화 값(같은 목록으로 맞춰 둠).
-- `MapSystem`: M 전체 지도(해도 `Resources/MapAtlas/OceanChart.png`) + 미니맵(같은 해도를 `ZoomUV` 로 300 px 만 확대, 적대 진영만 표시).
+- `MapSystem`: M 전체 지도(해도 `Resources/MapAtlas/OceanChart.png`) + 미니맵(같은 해도를 `ZoomUV` 로 300 px 만 확대, 관군·일본 배를 모두 표시 — 적대면 크게, 중립이면 0.75 배).
 - 함선 메뉴 `ShipMenu`(Y/ESC): 좌측 이미지 타일 5개(`Resources/ShipMenuArt/`), 가운데 전체 화면 3D 배(`ShowcaseViewer` fullScreen + 배경 쿼드), 우측 상세·강화·깃발 UI, `ResourceBar`.
 - 인벤토리 `InventoryMenu`(I/ESC): 좌측 캐릭터 3D 뷰어(전용 조명 켬), 우측 탭 5개 + 빈 슬롯 20칸(아이템 시스템 없음).
 - `ShowcaseViewer`: 레이어 Showcase 전용 카메라 + RT, 스테이지 (20000|20300, 600, 20000). 대상은 **MeshFilter/MeshRenderer 만 계층째 복사**, SkinnedMeshRenderer 는 `BakeMesh(mesh, false)` 후 노드 월드 스케일 1. 고정 노출 13.5, 물·구름·안개 끔. `stageLights`(키 30000 / 보조 10000 / 역광 15000 lux 스포트, 카메라 기준 고정). 드래그는 마우스 아래 최상위 UI 가 뷰어일 때만.
@@ -164,11 +167,11 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 ## 4. 월드 (SampleScene)
 
 ### 씬 루트
-`panok`(플레이어 배) · `anteck`/`seki`/`panok_navy`/`merchant`(스포너 템플릿) · `EnemyFleetSpawner` · `WeatherSystem`(+WeatherTestKeys, LightningStorm, SeaAmbientAudio) · `WaterDecalLOD` · `BountySystem` · `WaterFX` · `Ocean` · `BaseGroup`(Base 터레인, Cave, Light, 선착장) · `Sky and Fog Global Volume` · `CaveInteriorVolume` · `CaveReflectionProbe` · `Adaptive Probe Volume` · `PlayerRespawnPoint` · `LandingPoint_Dock` · `Boarding` · `MapSystem` · `GameData` · `ShipMenu` · `InventoryMenu` · 비활성: `Sphere`(포탄 원본), `Explosion_v1`, `BuoyancyObjects`.
+`panok`(플레이어 배) · `anteck`/`seki`/`panok_navy`/`merchant`(스포너 템플릿) · `EnemyFleetSpawner` · `WeatherSystem`(+WeatherTestKeys, LightningStorm, SeaAmbientAudio) · `WaterDecalLOD` · `ReputationSystem`(+ReputationGaugeUI) · `WaterFX` · `Ocean` · `BaseGroup`(Base 터레인, Cave, Light, 선착장) · `Sky and Fog Global Volume` · `CaveInteriorVolume` · `CaveReflectionProbe` · `Adaptive Probe Volume` · `PlayerRespawnPoint` · `LandingPoint_Dock` · `Boarding` · `MapSystem` · `GameData` · `ShipMenu` · `InventoryMenu` · 비활성: `Sphere`(포탄 원본), `Explosion_v1`, `BuoyancyObjects`.
 
 ### 터레인 (`BaseGroup/Base`, `Assets/New Terrain.asset`)
 - 500×500 m, 높이 스케일 600 m, 원점 (−250, −60, −250). 실제 높이 −60 ~ +19 m, 해수면 y 0. 나무·디테일 없음.
-- 텍스처 8레이어(TextureHaven 4K, `01.Asset/TerrainLayers/`): 해저 coral_gravel(tile 23)+rock_ground_02(31), 모래 aerial_sand(17), 풀 aerial_grass_rock(19)+forrest_ground_01(27), 바위 rock_ground(15)+rocks_ground_05(21), 절벽 aerial_rocks_01(21). 높이·경사 규칙(높이 < −2.5 해저, ~+3.5 모래, 경사 <22° 풀, 22~42° 바위, >42° 또는 >15 m 절벽) + Perlin 으로 자동 페인트, 구역마다 2종을 저주파 노이즈로 섞음.
+- 텍스처 8레이어(TextureHaven 4K, `01.Asset/TerrainLayers/`): 해저 coral_gravel(tile 23)+rock_ground_02(31), 모래 레이어 `Sand_aerial_sand`(**텍스처는 Poly Haven park_sand 2K, tile 4** — 원래 aerial_sand 는 항공사진이라 바퀴 자국 줄무늬가 보여 교체, 레이어 이름은 그대로), 풀 aerial_grass_rock(19)+forrest_ground_01(27), 바위 rock_ground(15)+rocks_ground_05(21), 절벽 aerial_rocks_01(21). 높이·경사 규칙(높이 < −2.5 해저, ~+3.5 모래, 경사 <22° 풀, 22~42° 바위, >42° 또는 >15 m 절벽) + Perlin 으로 자동 페인트, 구역마다 2종을 저주파 노이즈로 섞음.
 - **HDRP TerrainLit 레이어는 8개까지**(9번째부터 검게 렌더됨).
 - 터레인은 헤이트맵이라 오버행·동굴 불가 → 동굴은 바위 메시로 덮음, 구멍은 Terrain Holes.
 
@@ -184,12 +187,25 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 - 제대로 된 횃불 메시는 없음(프리미티브 기둥).
 
 ### 선착장 · 리스폰 · 안전지대
-- 선착장 `BaseGroup/swamp-bridge-4k-ready_2016`(x −142~−121, z −6.6~−0.3), 판자 윗면 y 4.745. 메시 7개에 MeshCollider.
+- 선착장 `BaseGroup/swamp-bridge-4k-ready_2016`(x −142~−121, z −6.6~−0.3), 판자 윗면 y 4.745. 메시 7개에 MeshCollider. **텍스처 교체(2026-09-26)**: 머티리얼 9개(`SwampBridge4k/Materials`, 동굴 계단도 같은 DeckBoards 3개를 씀)의 BaseColorMap = `SwampBridge4k/Retex/*_Retex.jpg`(Poly Haven `wood_planks` CC0 를 원래 아틀라스의 판자 배치 위에 입힘, 원래 밝기 30 % 유지, 기둥은 결 90° 회전), BaseColor 흰색, Smoothness 0.18. 예전: 회색 아틀라스 × 갈색·붉은 틴트라 어두웠음.
 - 하차 지점 `LandingPoint_Dock` (−125, 6.5, −3.4), dockRange 35 — 아래로 레이를 쏴 판자 위에 세움.
 - 리스폰 `PlayerRespawnPoint` (−110, 0.3, −4) + `BaseSafeZone` 반경 350.
 
-### 섬 배치 계획 (`IslandPlan`, 임시)
-- 계획(사용자): base 동남쪽에 일본 마을 중간섬 700×700, 서북쪽에 조선 큰섬 1000×1000 1개 + 작은섬 400×400 2개. 크기 확인용 큐브 4개(높이 35 m, 윗면 해발 15 m, **콜라이더 없음**)를 `IslandPlan` 아래에 두고 `MapSystem.mapGeometryRoots` 에 등록 — 지도는 Play 시작 때 구우므로 옮긴 뒤 Play 하면 반영. 위치는 사용자가 조정 중.
+### 새 섬 (`Islands`, 생성기 `Editor/IslandTerrainGenerator.cs`, 메뉴 HaeSin/섬 터레인 생성)
+- 섬마다 Terrain 1개. 위치 = `IslandPlan` 아래 계획 큐브(비활성)의 XZ 중심 — 큐브를 옮기고 메뉴를 다시 실행하면 그 자리에 같은 모양으로 다시 만듦(TerrainData 덮어씀, 시드 고정). 타일 = 육지 + 사방 200 m(해저가 가장자리에서 −45 m), 높이 범위 −60~+240, 헤이트맵 1025, 알파맵 1024, 레이어·머티리얼·설정은 Base 터레인과 같음. TerrainData = `02.Resources/00.Component/08.Environment/Islands/Island_*.asset`.
+- 섬(사용자 배치, 계획 크기 / 모양은 둥근 사각이라 실제 육지는 약 80 %):
+  - `Joseon_Large` 1000 (−2828, 4051): 남쪽 평야 약 8 m, 가운데 남쪽 궁터 10 m 평탄, 북쪽 산줄기(최고 약 150 m), 동남 구릉, 남쪽 만.
+  - `Joseon_Mid` 800 (1185, 2728): 해안 평지 4~9 m + 서쪽 구릉(약 75 m, 아랫자락 4 m 계단), 남쪽 만. (용도는 사용자 미지정 — 임의로 해안 마을형)
+  - `Joseon_Small_A` 600 (−1780, 176): 북서쪽 뾰족한 산 약 150 m + 서쪽 어깨 능선, 남동 중턱 계단식 산간 마을(5 m 단).
+  - `Joseon_Small_B` 600 (−962, 1619): 두 봉우리(약 115 / 95 m) 사이 골짜기 마을(바닥 10~18 m, 4 m 단), 남쪽 만.
+  - `Japan_Castle` **1100** (1751, −1195, 계획 큐브 `Plan_Japan_1100`): 800 은 실제 땅이 약 0.5 km² 라 좁다는 지적으로 키우고 만을 줄임(땅 약 1.0 km²). 성하 마을 평지 4~7 m + 가운데 성 언덕(혼마루 42 m 반경 55 / 니노마루 26 m 반경 105), 북서쪽(base 쪽) 작은 만.
+- **섬 선착장**(생성기가 만듦, 섬마다 `Dock`): 섬 중심에서 `dockAngle` 방향 해안선을 찾아 8 m 안쪽을 발치로, 발치 주변을 1.8 m 로 평탄화 + 육지 쪽으로 경사 약 9°·폭 12 m 길을 둑에 깎음(만 안쪽 해안이 가팔라서). Base 선착장을 복제(바다 쪽 경사로 Ramp_Upper 제거, 로컬 +x = 바다 쪽), `LandingPoint_<섬>`(dockRange 35), `HarborMooring`(정박선: 조선 = panok_navy [+ 큰·중간섬 merchant], 일본 = anteck + seki; 첫째 = 선착장 왼쪽 12 m 나란히, 오른쪽은 플레이어 배 자리, 둘째 = 앞바다 50 m). 정박선 = 원본 복제 + AI·이동·포격·노 끔, kinematic, 부력 Transform 모드 — 플레이어가 때리면 우호도는 움직이지만 반격 안 함.
+- 측정: 섬 선착장에서 하차 → 발치 1.8 m → 길로 섬 위까지 걸어 올라감(작은섬 A 확인). 길 최대 경사 13~25°.
+- **섬 생성기 메뉴는 비활성화**(사용자 지시 — `[MenuItem]` 주석 처리). 섬 지형은 손으로 다듬는 중이라 다시 돌리면 덮어써짐.
+- **일본섬 터레인은 사용자가 직접 조각함**(성 자리 계단식 고원). 섬 중심 기준(1751, −1195) 로컬 좌표로 Claude 가 직각으로 정리(2026-09-26): 혼마루 고원 F x 79~176 · z −55~53 · 154.66 m, 아래 단 x 42~231 · z −130~−55(+ x 42~79 · z −55~−47.5, 동쪽 귀 x 176~213 · z −55~−34) · 89.80 m, 북쪽 고원 129.75 m(서쪽 모서리 x = 64 직선, z 53~125). 사각형 밖 18 m 안의 비탈은 20 m 바깥 높이까지 깎아 벽을 세움(벽 = 헤이트맵 한 칸 1.46 m). F 북쪽 파인 곳(x 114~141, z 5.5~53)은 북쪽 129.75 → 남쪽 154.66 한 방향 경사(약 28°).
+- 일본섬 텍스처는 현재 높이로 다시 칠함: 바위 레이어(5·6) 안 씀 — 경사 26~36° 부터 절벽(풀+바위) 레이어, 95~135 m 위 절벽 45 % 섞음. 예전 성 언덕 경사 고리(바위 무늬)가 평지에 남아 있던 것 제거.
+- `CastlePlan`(씬 루트, 임시 크기 확인용 큐브, 콜라이더 있음, 바닥 = 섬 중심 높이 52.9 m 한 면): 천수각 = 히메지 대천수 기준 — 돌 기단 27×25×15 m, 1~3층 23.5 m 각 × 16 m(1층 554 m²), 4~6층 15.5 m 각 × 15.5 m(4층 240 m²) → 전체 46.5 m(히메지 46.4 m). 혼마루 흙담 80×80 m·높이 3 m, 모서리 망루 12×10×12 m ×2, 어전 32×16×10 / 22×14×8 m. 기단 15 m·건물 31.5 m 로 나눈 값과 망루·어전·흙담 크기는 확인 안 된 어림값.
+- 텍스처 규칙: 해저 < −2.5, 모래 < ~3 m, 경사 20~28°부터 바위, 38~48°부터 절벽, 90~130 m 위 바위 섞임.
 
 ### 원거리 표시
 - Main Camera far clip 4000, 글로벌 Fog `maximumHeight` 350(돔 전체가 높이 안개 안). 4000 m 에서 투과율 1 % 대라 자연스럽게 사라짐.
@@ -343,7 +359,7 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 - `EnemyShipBase` / `NavyShipBase` / `MoveControl` 은 공용 베이스로 합치지 않음.
 - 씬의 원본 배 오브젝트가 스포너 템플릿(프리팹 참조 아님).
 - 날씨 프리셋은 `WeatherSystem` 인스펙터 인라인 리스트.
-- 현상금은 플레이어의 상선 약탈에만, 관군 함대 수 상한으로 이어짐.
+- 현상금 대신 우호도 게이지 하나(관군 ↔ 일본). 중립이면 두 진영 모두 플레이어를 공격하지 않음. 섬 근처(영해)는 그 섬 진영 배만, 육지 가까이는 정박선만.
 - 근접전은 세키로식(튕겨내기 + 체간 + 결정타), **배에서 내린 상태에서만**. 공중제비·구르기류 동작은 넣지 않음(치마 속 노출). 결정타 쌍 애니메이션은 쓰지 않음.
 - 두 번째 콤보는 별도 키 없이 좌클릭 콤보에 자동으로 섞음. 강베기는 좌클릭 꾹. 칼은 자동으로 뽑고 넣음.
 - 걷는 캐릭터 카메라는 배 카메라와 같은 조작(마우스만 움직이면 돎).
@@ -362,7 +378,7 @@ Samples/              HDRP Water Samples(패키지 샘플 — 그대로 둠)
 - [ ] 콘솔 `Leak Detected : Persistent allocates 127 individual allocations` 경고 1건(Play 여러 번 후) — 출처 확인 필요.
 
 ### 월드
-- [ ] 새 섬을 만들면 `WaterShoreMask` 범위(현재 중심 (0,0) 1000 m)를 넓혀 다시 구워야 함, 안전지대·스폰 규칙도 섬별로 정해야 함.
+- [ ] 새 섬: 안전지대·적 스폰 규칙을 섬별로 정해야 함(지금은 base 만). 섬을 옮기거나 새로 만들면 `WaterShoreMask` 범위·다시 굽기. 섬 지형은 첫 생성본 — 마을·궁·성 배치하며 다듬기. APV·리플렉션 프로브 범위 밖(최종 베이크 때 확인 필요).
 - [ ] 터레인 브러시 다듬기, 선착장 주변 정리, 나무·풀 없음. 제대로 된 횃불 메시 없음, 횃불 불티가 많음(모닥불용 파티클).
 - [ ] APV·리플렉션 프로브 최종 베이크(바위 위치 확정 후).
 

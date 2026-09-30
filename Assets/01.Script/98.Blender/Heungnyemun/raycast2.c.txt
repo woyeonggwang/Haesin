@@ -1,0 +1,174 @@
+// 빌드: gcc -O3 -shared -fPIC -march=native -fopenmp raycast2.c -o libraycast2.so -lm  (Unity 가 .c 를 네이티브 소스로 보므로 .c.txt 로 둠)
+// SAH(구간 나누기) BVH + 가까운 쪽 먼저 도는 광선 교차(양면), OpenMP 로 광선 나눠 돌림.
+// rayeval.py 의 bvh_build/bvh_cast 와 같은 함수 모양 → RAYCAST_LIB 로 바꿔 끼울 수 있음.
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <float.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+typedef struct { float mn[3], mx[3]; int left, count; } Node;   // count>0: 잎(left = 시작), count==0: 안쪽(left = 왼쪽 자식, 오른쪽 = left+1)
+typedef struct { const float* V; const int* F; int nf; int* tri; float* cen; float* bmn; float* bmx; Node* nodes; int nn; } BVH;
+
+#define NB 16
+static float area(const float* mn, const float* mx) {
+    float d0 = mx[0] - mn[0], d1 = mx[1] - mn[1], d2 = mx[2] - mn[2];
+    if (d0 < 0 || d1 < 0 || d2 < 0) return 0;
+    return 2 * (d0 * d1 + d1 * d2 + d2 * d0);
+}
+
+static void build(BVH* b, int ni, int start, int count, int depth) {
+    Node* n = &b->nodes[ni];
+    float cmn[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, cmx[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
+    for (int k = 0; k < 3; k++) { n->mn[k] = FLT_MAX; n->mx[k] = -FLT_MAX; }
+    for (int i = start; i < start + count; i++) {
+        int t = b->tri[i];
+        for (int k = 0; k < 3; k++) {
+            if (b->bmn[3*t+k] < n->mn[k]) n->mn[k] = b->bmn[3*t+k];
+            if (b->bmx[3*t+k] > n->mx[k]) n->mx[k] = b->bmx[3*t+k];
+            float c = b->cen[3*t+k]; if (c < cmn[k]) cmn[k] = c; if (c > cmx[k]) cmx[k] = c;
+        }
+    }
+    n->left = start; n->count = count;
+    if (count <= 2 || depth > 60) return;
+    float bestcost = FLT_MAX; int bax = -1, bsplit = -1;
+    float leafcost = (float)count;
+    float pa = area(n->mn, n->mx); if (pa <= 0) pa = 1e-12f;
+    for (int ax = 0; ax < 3; ax++) {
+        float ext = cmx[ax] - cmn[ax];
+        if (ext <= 1e-9f) continue;
+        int cnt[NB]; float bmn[NB][3], bmx[NB][3];
+        for (int i = 0; i < NB; i++) { cnt[i] = 0; for (int k = 0; k < 3; k++) { bmn[i][k] = FLT_MAX; bmx[i][k] = -FLT_MAX; } }
+        float sc = NB / ext;
+        for (int i = start; i < start + count; i++) {
+            int t = b->tri[i];
+            int bi = (int)((b->cen[3*t+ax] - cmn[ax]) * sc); if (bi >= NB) bi = NB - 1; if (bi < 0) bi = 0;
+            cnt[bi]++;
+            for (int k = 0; k < 3; k++) { if (b->bmn[3*t+k] < bmn[bi][k]) bmn[bi][k] = b->bmn[3*t+k]; if (b->bmx[3*t+k] > bmx[bi][k]) bmx[bi][k] = b->bmx[3*t+k]; }
+        }
+        float lA[NB], rA[NB]; int lC[NB], rC[NB];
+        float mn[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, mx[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX}; int c = 0;
+        for (int i = 0; i < NB - 1; i++) {
+            c += cnt[i]; for (int k = 0; k < 3; k++) { if (bmn[i][k] < mn[k]) mn[k] = bmn[i][k]; if (bmx[i][k] > mx[k]) mx[k] = bmx[i][k]; }
+            lC[i] = c; lA[i] = c ? area(mn, mx) : 0;
+        }
+        for (int k = 0; k < 3; k++) { mn[k] = FLT_MAX; mx[k] = -FLT_MAX; } c = 0;
+        for (int i = NB - 1; i > 0; i--) {
+            c += cnt[i]; for (int k = 0; k < 3; k++) { if (bmn[i][k] < mn[k]) mn[k] = bmn[i][k]; if (bmx[i][k] > mx[k]) mx[k] = bmx[i][k]; }
+            rC[i - 1] = c; rA[i - 1] = c ? area(mn, mx) : 0;
+        }
+        for (int i = 0; i < NB - 1; i++) {
+            if (lC[i] == 0 || rC[i] == 0) continue;
+            float cost = 0.3f + (lA[i] * lC[i] + rA[i] * rC[i]) / pa;
+            if (cost < bestcost) { bestcost = cost; bax = ax; bsplit = i; }
+        }
+    }
+    int lc;
+    if (bax < 0 || (bestcost >= leafcost && count <= 8)) {
+        if (count <= 8) return;
+        // 중앙값으로 억지로 나눔
+        int ax = 0; float be = cmx[0] - cmn[0];
+        for (int k = 1; k < 3; k++) if (cmx[k] - cmn[k] > be) { be = cmx[k] - cmn[k]; ax = k; }
+        float mid = 0.5f * (cmn[ax] + cmx[ax]);
+        int i = start, j = start + count - 1;
+        while (i <= j) { if (b->cen[3*b->tri[i]+ax] < mid) i++; else { int t = b->tri[i]; b->tri[i] = b->tri[j]; b->tri[j] = t; j--; } }
+        lc = i - start; if (lc == 0 || lc == count) lc = count / 2;
+    } else {
+        float ext = cmx[bax] - cmn[bax]; float sc = NB / ext;
+        int i = start, j = start + count - 1;
+        while (i <= j) {
+            int t = b->tri[i];
+            int bi = (int)((b->cen[3*t+bax] - cmn[bax]) * sc); if (bi >= NB) bi = NB - 1; if (bi < 0) bi = 0;
+            if (bi <= bsplit) i++; else { b->tri[i] = b->tri[j]; b->tri[j] = t; j--; }
+        }
+        lc = i - start; if (lc == 0 || lc == count) lc = count / 2;
+    }
+    int l = b->nn; b->nn += 2;
+    n->left = l; n->count = 0;
+    build(b, l, start, lc, depth + 1);
+    build(b, l + 1, start + lc, count - lc, depth + 1);
+}
+
+void* bvh_build(const float* V, int nv, const int* F, int nf) {
+    BVH* b = (BVH*)calloc(1, sizeof(BVH));
+    b->V = V; b->F = F; b->nf = nf;
+    int m = nf > 0 ? nf : 1;
+    b->tri = (int*)malloc(sizeof(int) * m); b->cen = (float*)malloc(sizeof(float) * 3 * m);
+    b->bmn = (float*)malloc(sizeof(float) * 3 * m); b->bmx = (float*)malloc(sizeof(float) * 3 * m);
+    for (int t = 0; t < nf; t++) {
+        b->tri[t] = t;
+        for (int k = 0; k < 3; k++) {
+            float a = V[3*F[3*t]+k], bb = V[3*F[3*t+1]+k], c = V[3*F[3*t+2]+k];
+            b->cen[3*t+k] = (a + bb + c) / 3.0f;
+            float lo = a < bb ? a : bb; lo = lo < c ? lo : c; float hi = a > bb ? a : bb; hi = hi > c ? hi : c;
+            b->bmn[3*t+k] = lo; b->bmx[3*t+k] = hi;
+        }
+    }
+    b->nodes = (Node*)malloc(sizeof(Node) * (2 * m + 1));
+    b->nn = 1;
+    if (nf > 0) build(b, 0, 0, nf, 0);
+    free(b->cen); b->cen = NULL; free(b->bmn); b->bmn = NULL; free(b->bmx); b->bmx = NULL;
+    return b;
+}
+
+void bvh_free(void* p) { BVH* b = (BVH*)p; free(b->tri); free(b->nodes); free(b); }
+
+static inline float box_hit(const float* o, const float* inv, const float* mn, const float* mx, float tmax) {
+    float t0 = 0, t1 = tmax;
+    for (int k = 0; k < 3; k++) {
+        float a = (mn[k] - o[k]) * inv[k], c = (mx[k] - o[k]) * inv[k];
+        if (a > c) { float t = a; a = c; c = t; }
+        if (a > t0) t0 = a; if (c < t1) t1 = c;
+        if (t0 > t1) return -1;
+    }
+    return t0;
+}
+
+void bvh_cast(void* p, const float* O, const float* D, int n, float tmax, float* T, int* TRI, float* U, float* Vv) {
+    BVH* b = (BVH*)p;
+    #pragma omp parallel for schedule(dynamic, 256)
+    for (int r = 0; r < n; r++) {
+        int stack[128];
+        const float* o = O + 3 * r; const float* d = D + 3 * r;
+        float inv[3]; for (int k = 0; k < 3; k++) inv[k] = fabsf(d[k]) > 1e-12f ? 1.0f / d[k] : (d[k] >= 0 ? 1e12f : -1e12f);
+        float best = tmax; int bt = -1; float bu = 0, bv = 0;
+        if (b->nf > 0 && box_hit(o, inv, b->nodes[0].mn, b->nodes[0].mx, best) >= 0) {
+            int sp = 0; stack[sp++] = 0;
+            while (sp) {
+                const Node* nd = &b->nodes[stack[--sp]];
+                if (nd->count > 0) {
+                    for (int i = nd->left; i < nd->left + nd->count; i++) {
+                        int t = b->tri[i];
+                        const float* A = b->V + 3 * b->F[3 * t]; const float* B = b->V + 3 * b->F[3 * t + 1]; const float* C = b->V + 3 * b->F[3 * t + 2];
+                        float e1[3] = {B[0] - A[0], B[1] - A[1], B[2] - A[2]}, e2[3] = {C[0] - A[0], C[1] - A[1], C[2] - A[2]};
+                        float pv[3] = {d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]};
+                        float det = e1[0] * pv[0] + e1[1] * pv[1] + e1[2] * pv[2];
+                        if (fabsf(det) < 1e-14f) continue;
+                        float id = 1.0f / det;
+                        float tv[3] = {o[0] - A[0], o[1] - A[1], o[2] - A[2]};
+                        float u = (tv[0] * pv[0] + tv[1] * pv[1] + tv[2] * pv[2]) * id;
+                        if (u < 0 || u > 1) continue;
+                        float qv[3] = {tv[1] * e1[2] - tv[2] * e1[1], tv[2] * e1[0] - tv[0] * e1[2], tv[0] * e1[1] - tv[1] * e1[0]};
+                        float v = (d[0] * qv[0] + d[1] * qv[1] + d[2] * qv[2]) * id;
+                        if (v < 0 || u + v > 1) continue;
+                        float tt = (e2[0] * qv[0] + e2[1] * qv[1] + e2[2] * qv[2]) * id;
+                        if (tt > 1e-6f && tt < best) { best = tt; bt = t; bu = u; bv = v; }
+                    }
+                } else {
+                    const Node* l = &b->nodes[nd->left]; const Node* rr = &b->nodes[nd->left + 1];
+                    float tl = box_hit(o, inv, l->mn, l->mx, best), tr = box_hit(o, inv, rr->mn, rr->mx, best);
+                    if (tl >= 0 && tr >= 0) {
+                        if (sp < 126) {
+                            if (tl <= tr) { stack[sp++] = nd->left + 1; stack[sp++] = nd->left; }
+                            else { stack[sp++] = nd->left; stack[sp++] = nd->left + 1; }
+                        }
+                    } else if (tl >= 0) { if (sp < 127) stack[sp++] = nd->left; }
+                    else if (tr >= 0) { if (sp < 127) stack[sp++] = nd->left + 1; }
+                }
+            }
+        }
+        T[r] = best; TRI[r] = bt; U[r] = bu; Vv[r] = bv;
+    }
+}

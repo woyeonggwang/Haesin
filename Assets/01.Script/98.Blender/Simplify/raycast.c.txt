@@ -1,0 +1,114 @@
+// 빌드: gcc -O3 -shared -fPIC raycast.c -o libraycast.so -lm   (rayeval.py 가 RAYCAST_LIB 환경 변수, 없으면 /tmp/libraycast.so 를 읽음)
+// Unity 는 .c 를 네이티브 플러그인 소스로 가져가므로 이 폴더에는 .c.txt 로 둔다 — 빌드할 때 raycast.c 로 이름을 바꿔 쓸 것.
+// 간단한 BVH 광선 교차(양면) — 줄인 메시가 원본과 같게 보이는지 여러 방향 광선으로 비교하는 데 씀.
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <float.h>
+
+typedef struct { float mn[3], mx[3]; int left, right, start, count; } Node;
+typedef struct { const float* V; int* tri; int nf; const int* F; Node* nodes; int nn; float* cen; } BVH;
+
+static void tri_bounds(const float* V, const int* F, int t, float* mn, float* mx) {
+    for (int k = 0; k < 3; k++) { mn[k] = FLT_MAX; mx[k] = -FLT_MAX; }
+    for (int j = 0; j < 3; j++) { const float* p = V + 3 * F[3 * t + j]; for (int k = 0; k < 3; k++) { if (p[k] < mn[k]) mn[k] = p[k]; if (p[k] > mx[k]) mx[k] = p[k]; } }
+}
+
+static int build_rec(BVH* b, int start, int count) {
+    int id = b->nn++;
+    Node* n = &b->nodes[id];
+    for (int k = 0; k < 3; k++) { n->mn[k] = FLT_MAX; n->mx[k] = -FLT_MAX; }
+    float cmn[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, cmx[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
+    for (int i = start; i < start + count; i++) {
+        float mn[3], mx[3]; tri_bounds(b->V, b->F, b->tri[i], mn, mx);
+        for (int k = 0; k < 3; k++) {
+            if (mn[k] < n->mn[k]) n->mn[k] = mn[k]; if (mx[k] > n->mx[k]) n->mx[k] = mx[k];
+            float c = b->cen[3 * b->tri[i] + k]; if (c < cmn[k]) cmn[k] = c; if (c > cmx[k]) cmx[k] = c;
+        }
+    }
+    n->start = start; n->count = count; n->left = n->right = -1;
+    if (count <= 4) return id;
+    int ax = 0; float best = cmx[0] - cmn[0];
+    for (int k = 1; k < 3; k++) if (cmx[k] - cmn[k] > best) { best = cmx[k] - cmn[k]; ax = k; }
+    if (best <= 0) return id;
+    float mid = 0.5f * (cmn[ax] + cmx[ax]);
+    int i = start, j = start + count - 1;
+    while (i <= j) {
+        if (b->cen[3 * b->tri[i] + ax] < mid) i++;
+        else { int t = b->tri[i]; b->tri[i] = b->tri[j]; b->tri[j] = t; j--; }
+    }
+    int lc = i - start;
+    if (lc == 0 || lc == count) lc = count / 2;
+    int l = build_rec(b, start, lc);
+    int r = build_rec(b, start + lc, count - lc);
+    b->nodes[id].left = l; b->nodes[id].right = r; b->nodes[id].count = 0;
+    return id;
+}
+
+void* bvh_build(const float* V, int nv, const int* F, int nf) {
+    BVH* b = (BVH*)calloc(1, sizeof(BVH));
+    b->V = V; b->F = F; b->nf = nf;
+    b->tri = (int*)malloc(sizeof(int) * (nf > 0 ? nf : 1));
+    b->cen = (float*)malloc(sizeof(float) * 3 * (nf > 0 ? nf : 1));
+    for (int t = 0; t < nf; t++) {
+        b->tri[t] = t;
+        for (int k = 0; k < 3; k++) b->cen[3 * t + k] = (V[3 * F[3 * t] + k] + V[3 * F[3 * t + 1] + k] + V[3 * F[3 * t + 2] + k]) / 3.0f;
+    }
+    b->nodes = (Node*)malloc(sizeof(Node) * (2 * (nf > 0 ? nf : 1) + 1));
+    b->nn = 0;
+    if (nf > 0) build_rec(b, 0, nf);
+    return b;
+}
+
+void bvh_free(void* p) { BVH* b = (BVH*)p; free(b->tri); free(b->cen); free(b->nodes); free(b); }
+
+static int ray_box(const float* o, const float* inv, const float* mn, const float* mx, float tmax) {
+    float t0 = 0, t1 = tmax;
+    for (int k = 0; k < 3; k++) {
+        float a = (mn[k] - o[k]) * inv[k], c = (mx[k] - o[k]) * inv[k];
+        if (a > c) { float t = a; a = c; c = t; }
+        if (a > t0) t0 = a; if (c < t1) t1 = c;
+        if (t0 > t1) return 0;
+    }
+    return 1;
+}
+
+// 광선 n 개: O(n×3), D(n×3). 결과 t(n), tri(n)(-1 = 안 맞음), u,v(무게중심 좌표: p = (1-u-v)A + uB + vC)
+void bvh_cast(void* p, const float* O, const float* D, int n, float tmax, float* T, int* TRI, float* U, float* Vv) {
+    BVH* b = (BVH*)p;
+    int stack[256];
+    for (int r = 0; r < n; r++) {
+        const float* o = O + 3 * r; const float* d = D + 3 * r;
+        float inv[3]; for (int k = 0; k < 3; k++) inv[k] = fabsf(d[k]) > 1e-12f ? 1.0f / d[k] : (d[k] >= 0 ? 1e12f : -1e12f);
+        float best = tmax; int bt = -1; float bu = 0, bv = 0;
+        if (b->nf > 0) {
+            int sp = 0; stack[sp++] = 0;
+            while (sp) {
+                Node* nd = &b->nodes[stack[--sp]];
+                if (!ray_box(o, inv, nd->mn, nd->mx, best)) continue;
+                if (nd->count > 0) {
+                    for (int i = nd->start; i < nd->start + nd->count; i++) {
+                        int t = b->tri[i];
+                        const float* A = b->V + 3 * b->F[3 * t]; const float* B = b->V + 3 * b->F[3 * t + 1]; const float* C = b->V + 3 * b->F[3 * t + 2];
+                        float e1[3] = {B[0] - A[0], B[1] - A[1], B[2] - A[2]}, e2[3] = {C[0] - A[0], C[1] - A[1], C[2] - A[2]};
+                        float pv[3] = {d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]};
+                        float det = e1[0] * pv[0] + e1[1] * pv[1] + e1[2] * pv[2];
+                        if (fabsf(det) < 1e-14f) continue;
+                        float id = 1.0f / det;
+                        float tv[3] = {o[0] - A[0], o[1] - A[1], o[2] - A[2]};
+                        float u = (tv[0] * pv[0] + tv[1] * pv[1] + tv[2] * pv[2]) * id;
+                        if (u < 0 || u > 1) continue;
+                        float qv[3] = {tv[1] * e1[2] - tv[2] * e1[1], tv[2] * e1[0] - tv[0] * e1[2], tv[0] * e1[1] - tv[1] * e1[0]};
+                        float v = (d[0] * qv[0] + d[1] * qv[1] + d[2] * qv[2]) * id;
+                        if (v < 0 || u + v > 1) continue;
+                        float tt = (e2[0] * qv[0] + e2[1] * qv[1] + e2[2] * qv[2]) * id;
+                        if (tt > 1e-6f && tt < best) { best = tt; bt = t; bu = u; bv = v; }
+                    }
+                } else {
+                    if (sp < 254) { stack[sp++] = nd->left; stack[sp++] = nd->right; }
+                }
+            }
+        }
+        T[r] = best; TRI[r] = bt; U[r] = bu; Vv[r] = bv;
+    }
+}

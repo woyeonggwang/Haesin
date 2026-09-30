@@ -1,0 +1,44 @@
+// 빌드: gcc -O3 -shared -fPIC flood.c -o libflood.so -lm  (Unity 가 .c 를 네이티브 소스로 보므로 .c.txt 로 둠)
+// 복셀 격자 바깥 공기 채우기(6-연결, 가로줄 단위). grid: 0 = 공기, 1 = 막힘. 결과: 바깥에서 닿는 공기 = 2.
+// seeds: 시작할 공기 칸 번호 목록(1차원 인덱스 = (z*NY + y)*NX + x).
+#include <stdlib.h>
+#include <stdint.h>
+typedef struct { int x, y, z; } S;
+long long flood(uint8_t* g, int NX, int NY, int NZ, const long long* seeds, long long ns) {
+    long long cap = 1 << 20, top = 0, filled = 0;
+    S* st = (S*)malloc(sizeof(S) * cap);
+    for (long long i = 0; i < ns; i++) {
+        long long id = seeds[i];
+        if (g[id] != 0) continue;
+        int x = (int)(id % NX); long long r = id / NX; int y = (int)(r % NY); int z = (int)(r / NY);
+        if (top >= cap) { cap *= 2; st = (S*)realloc(st, sizeof(S) * cap); }
+        st[top].x = x; st[top].y = y; st[top].z = z; top++;
+        while (top > 0) {
+            S s = st[--top];
+            long long row = ((long long)s.z * NY + s.y) * NX;
+            if (g[row + s.x] != 0) continue;
+            int x0 = s.x, x1 = s.x;
+            while (x0 > 0 && g[row + x0 - 1] == 0) x0--;
+            while (x1 < NX - 1 && g[row + x1 + 1] == 0) x1++;
+            for (int xx = x0; xx <= x1; xx++) g[row + xx] = 2;
+            filled += x1 - x0 + 1;
+            int ny4[4][2] = {{s.y - 1, s.z}, {s.y + 1, s.z}, {s.y, s.z - 1}, {s.y, s.z + 1}};
+            for (int k = 0; k < 4; k++) {
+                int yy = ny4[k][0], zz = ny4[k][1];
+                if (yy < 0 || yy >= NY || zz < 0 || zz >= NZ) continue;
+                long long r2 = ((long long)zz * NY + yy) * NX;
+                int in = 0;
+                for (int xx = x0; xx <= x1; xx++) {
+                    if (g[r2 + xx] == 0) {
+                        if (!in) {
+                            if (top >= cap) { cap *= 2; st = (S*)realloc(st, sizeof(S) * cap); }
+                            st[top].x = xx; st[top].y = yy; st[top].z = zz; top++; in = 1;
+                        }
+                    } else in = 0;
+                }
+            }
+        }
+    }
+    free(st);
+    return filled;
+}

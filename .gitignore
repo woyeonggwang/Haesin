@@ -112,3 +112,19 @@ InitTestScene*.unity*
 /Assets/02.Resources/01.Asset/Textures/ObjectiveEnvironment_Assets.meta
 /Assets/00.Scenes/SampleScene/*.bytes
 /Assets/00.Scenes/SampleScene/*.bytes.meta
+
+# 경복궁 에셋 폴더(원본 패키지 + _Shared + _Baked + 단순화판) - 약 4만 개, 27 GB. 로컬에만 둠 (2026-09-30)
+/Assets/02.Resources/01.Asset/Models/Gyeongbokgung/
+/Assets/02.Resources/01.Asset/Models/Gyeongbokgung.meta
+
+# 모델링 작업 확인용 캡처
+/Assets/Screenshots/
+/Assets/Screenshots.meta
+/Captures/
+/Claude outputs/
+
+# 파이썬 캐시(블렌더가 98.Blender 스크립트를 불러올 때 생김)
+__pycache__/
+__pycache__.meta
+*.pyc
+*.pyc.meta

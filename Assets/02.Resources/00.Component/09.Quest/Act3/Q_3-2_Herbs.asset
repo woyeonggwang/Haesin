@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_3-2_Herbs
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 3-2
+  act: "3\uB9C9"
+  title: "\uC720\uBC30 \uC591\uBC18\uC758 \uBD80\uD0C1 1"
+  giver: "\uD55C\uC724\uACB8(\uCCAD\uC7AC)"
+  summary: "\uD55C\uC724\uACB8\uC758 \uBD80\uD0C1\uC73C\uB85C \uC57D\uCD08\uB97C
+    \uAD6C\uD574 \uC628\uB2E4. \uD55C\uC724\uACB8\uC740 \uD61C\uC758 \uC5BC\uAD74\uC5D0\uC11C
+    \uC219\uC758 \uC815\uC528\uB97C \uC54C\uC544\uBCF4\uC9C0\uB9CC \uB9D0\uD558\uC9C0
+    \uC54A\uB294\uB2E4."
+  onStart: []
+  introDialogue: []
+  objectives:
+  - type: 0
+    description: "\uCD08\uAC00\uC5D0 \uC0AC\uB294 \uD55C\uC724\uACB8 \uCC3E\uC544\uAC00\uAE30"
+    targetId: han_yungyeom
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\uC0C8\uB85C \uC628 \uAC10\uC2DC\uC778\uC774\uAD6C\uB824. \u2026"
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\u2026\u2026"
+    - speaker: "\uD61C"
+      text: "\uC65C \uADF8\uB807\uAC8C \uBCF4\uC2ED\uB2C8\uAE4C?"
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\uC544\uB2C8\uC624. \uC61B\uB0A0\uC5D0 \uC54C\uB358 \uC0AC\uB78C\uACFC
+        \uB2EE\uC544\uC11C. \uB299\uC73C\uBA74 \uB208\uC774 \uD750\uB824\uC9C0\uB294
+        \uBC95\uC774\uC624."
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\uBD80\uD0C1 \uD558\uB098 \uD574\uB3C4 \uB418\uACA0\uC18C? \uAE30\uCE68\uC774
+        \uB3C4\uC838\uC11C \uADF8\uB7EC\uC624. \uACE8\uC9DC\uAE30 \uC704\uC5D0 \uB3C4\uB77C\uC9C0\uC640
+        \uAC10\uCD08\uAC00 \uC790\uB77C\uC624."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 2
+    description: "\uACE8\uC9DC\uAE30 \uC704\uC5D0\uC11C \uC57D\uCD08 \uCE90\uAE30"
+    targetId: "\uB9DD\uC6B4\uB3C4_\uC57D\uCD08"
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd:
+    - type: 0
+      text: "\uC57D\uCD08\uB97C \uCEA4\uC2B5\uB2C8\uB2E4"
+      faction: 1
+      value: 0
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 0
+    description: "\uD55C\uC724\uACB8\uC5D0\uAC8C \uC57D\uCD08 \uAC16\uB2E4\uC8FC\uAE30"
+    targetId: han_yungyeom
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\uACE0\uB9D9\uC18C. \uAC10\uC2DC\uC778\uC774 \uC8C4\uC778 \uC57D\uCD08\uB97C
+        \uCE90 \uC8FC\uB2E4\uB2C8, \uC138\uC0C1\uC774 \uB9CE\uC774 \uBCC0\uD588\uAD6C\uB824."
+    - speaker: "\uD61C"
+      text: "\uC8C4\uC778\uC774\uB77C \uD558\uAE30\uC5D4 \uB108\uBB34 \uC810\uC796\uC73C\uC2ED\uB2C8\uB2E4."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: 6f60d411e2af45045a3ca8d8f6f126f8, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

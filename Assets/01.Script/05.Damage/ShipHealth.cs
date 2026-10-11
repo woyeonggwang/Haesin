@@ -88,6 +88,12 @@ public class ShipHealth : MonoBehaviour
     /// <summary>살아있는 모든 배의 체력. 다른 시스템이 훑어볼 수 있게 둔다.</summary>
     public static readonly List<ShipHealth> All = new List<ShipHealth>();
 
+    /// <summary>어느 배든 완파될 때(퀘스트 격침 목표가 씀, 2026-10-07). lastAttackerFaction 으로 누가 잡았는지 본다.</summary>
+    public static System.Action<ShipHealth> OnAnyDied;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { OnAnyDied = null; }
+
     private ShipFaction _faction;
     private float _lastDamageTime = -999f;
     private float _nextThreatCheck;
@@ -272,6 +278,7 @@ public class ShipHealth : MonoBehaviour
         currentHealth = 0f;
         RecomputeStage(true);
         if (OnDied != null) OnDied();
+        if (OnAnyDied != null) OnAnyDied(this);
 
         if (!sinkOnDeath) return;   // 플레이어는 아직 가라앉지 않는다
         BeginSink();

@@ -30,6 +30,13 @@ public class MerchantAI : NavyShipBase
     [Tooltip("대열 위치에 이만큼 가까우면 다 따라잡은 것으로 본다(m).")]
     public float formationArrive = 12f;
 
+    [Header("퀘스트 호위 (2026-10-09)")]
+    [Tooltip("켜면 도망·대열 대신 destination 으로 곧장 항해하고, 닿으면(arriveRadius) 멈춘다 — 퀘스트 호위 대상.")]
+    public bool hasDestination;
+    public Vector3 destination;
+    public float destinationSpeed = 4f;
+    public float arriveRadius = 40f;
+
     [Header("상태 (읽기 전용)")]
     public State state = State.Sail;
     [Tooltip("이 상선이 이미 약탈당했는지.")]
@@ -73,8 +80,20 @@ public class MerchantAI : NavyShipBase
         if (known && raider == Faction.Pirate) Debug.Log("[Merchant] 플레이어가 상선을 약탈");
     }
 
+    /// <summary>호위 목적지에 닿았는지(수평 거리).</summary>
+    public bool Arrived
+    {
+        get { Vector3 d = destination - transform.position; d.y = 0f; return hasDestination && d.magnitude <= arriveRadius; }
+    }
+
     protected override void TickBehaviour()
     {
+        if (hasDestination)
+        {
+            if (Arrived) ApplyThrust(0f);
+            else SailTowards(destination, destinationSpeed);
+            return;
+        }
         UpdateState();
 
         switch (state)

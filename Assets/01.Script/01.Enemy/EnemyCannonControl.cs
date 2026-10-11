@@ -3,7 +3,8 @@ using UnityEngine;
 
 /// <summary>
 /// 안택선 포격. EnemyAI 가 Broadside(교전) 상태이고 플레이어 쪽 현이 정렬되면
-/// 그 현의 대포들을 일제사한다. 포탄은 플레이어의 Bullet(Sphere)과 같은 것을 쓰되
+/// 그 현의 대포들을 일제사한다. EnemyAI 가 꺼진 선착장 배(HarborPatrol)는 HarborPatrol 이 고른 표적을 쏜다
+/// (2026-10-05 사용자 지시 "선착장 근처 배가 대포를 안 쏨" — 예전엔 선착장 배의 포격을 끔). 포탄은 플레이어의 Bullet(Sphere)과 같은 것을 쓰되
 /// shotMode 를 Enemy 로 설정한다.
 ///
 /// portPoints / starboardPoints 를 비워두면 자식의 CanonL / CanonR 그룹에서
@@ -47,6 +48,7 @@ public class EnemyCannonControl : MonoBehaviour
     public int volleysFired;
 
     private EnemyAI _ai;
+    private HarborPatrol _harbor;
     private ShipFaction _self;
     private Transform _player;
     private float _nextVolleyTime;
@@ -54,6 +56,7 @@ public class EnemyCannonControl : MonoBehaviour
     void Start()
     {
         _ai = GetComponent<EnemyAI>();
+        _harbor = GetComponent<HarborPatrol>();
         _self = GetComponent<ShipFaction>();
         // 표적은 Start 에서 고정하지 않는다.
         // 진영이 셋이 되면서 표적이 플레이어일 수도, 관군함일 수도 있고
@@ -85,13 +88,26 @@ public class EnemyCannonControl : MonoBehaviour
 
     void Update()
     {
-        if (_ai == null || cannonBallPrefab == null) return;
+        if (cannonBallPrefab == null) return;
 
-        _player = _ai.CurrentTarget;
-        if (_player == null) return;
-        if (_ai.state != EnemyAI.State.Broadside) return;
-        if (_ai.distanceToPlayer > fireRange) return;
+        if (_ai != null && _ai.enabled)
+        {
+            _player = _ai.CurrentTarget;
+            if (_player == null) return;
+            if (_ai.state != EnemyAI.State.Broadside) return;
+            if (_ai.distanceToPlayer > fireRange) return;
+        }
+        else if (_harbor != null && _harbor.isActiveAndEnabled)
+        {
+            ShipFaction t = _harbor.Target;
+            if (t == null || !t.isActiveAndEnabled) return;
+            _player = t.transform;
+            Vector3 d = _player.position - transform.position; d.y = 0f;
+            if (d.magnitude > fireRange) return;
+        }
+        else return;
         if (Time.time < _nextVolleyTime) return;
+        if (!ShipCrew.CanFireCannons(this)) return;   // 선원이 모두 쓰러지면 대포를 못 쏨(사용자 지시)
 
         // 플레이어가 어느 현 쪽인가
         Vector3 to = _player.position - transform.position;

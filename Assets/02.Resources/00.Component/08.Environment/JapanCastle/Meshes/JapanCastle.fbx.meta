@@ -1,0 +1,235 @@
+fileFormatVersion: 2
+guid: f502e676aaeea144096075112324a8c0
+ModelImporter:
+  serializedVersion: 24200
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Gate_Forged_Dark_Iron
+    second: {fileID: 2100000, guid: b02d4ca9735c94d40915d055ccd78b64, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ishigaki_Natural_Stone_1
+    second: {fileID: 2100000, guid: 7b96bb178e5127a4f9ab04929ebc7ed1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ishigaki_Natural_Stone_2
+    second: {fileID: 2100000, guid: a17d8a3c98a285e4eb0658c5bca220c2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ishigaki_Natural_Stone_3
+    second: {fileID: 2100000, guid: e115adab184e58d48a90ec6743631743, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ishigaki_Natural_Stone_4
+    second: {fileID: 2100000, guid: 33022fc8a3fd5d8408ef278e5ce171ef, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ishigaki_Natural_Stone_5
+    second: {fileID: 2100000, guid: c2dda1dabcf0dd14282fc049beb9027e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ishigaki_Natural_Stone_6
+    second: {fileID: 2100000, guid: 5c81648546216524cabb591a3260fc32, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ishigaki_Natural_Stone_7
+    second: {fileID: 2100000, guid: cadc98d17ca081248b8ba50a7d40a02e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ishigaki_Shadowed_Stone_Joints
+    second: {fileID: 2100000, guid: 802433223a78cf549b13c03eaedb6b37, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Ishigaki_Worn_Step_And_Coping_Stone
+    second: {fileID: 2100000, guid: c1d028a8ddb6cf348a1545213eeedcaa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_JC_Bamboo
+    second: {fileID: 2100000, guid: 3fc300829f4cc2e4eb7ee368f0580533, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_JC_CopperNailCover
+    second: {fileID: 2100000, guid: 4c86bc407b4970444be4932d6aedad70, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_JC_Dark
+    second: {fileID: 2100000, guid: 18f488e5605de3642920bb47064a52f6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_JC_DarkWood
+    second: {fileID: 2100000, guid: 7bbebfefd2c7fdb409c4be4dc6854555, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_JC_InteriorIron
+    second: {fileID: 2100000, guid: 99f1e809ded1b9748a09d67d7b3c157f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_JC_InteriorPaper
+    second: {fileID: 2100000, guid: 2580b7407d0f5e6419213630bdbf5c60, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_JC_InteriorWood
+    second: {fileID: 2100000, guid: 8bd2381593d171142b82ba432012936f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_JC_Plaster
+    second: {fileID: 2100000, guid: c3544b152567cbb489b8de3e43f8f7f1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_JC_WoodDoor
+    second: {fileID: 2100000, guid: 29ed0fa6d78fa1e4e9876078fcb3aa14, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tenshu_Aged_Gold_Details
+    second: {fileID: 2100000, guid: 661733064bcca274e83610141c5a56fb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tenshu_Black_Timber_Slats
+    second: {fileID: 2100000, guid: 8939b2c65c2810640b4ec32f350970a6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tenshu_Charcoal_Verdigris_Kawara
+    second: {fileID: 2100000, guid: d7129c669c9506b468a67df56d0cb94a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tenshu_Lattice_Dark_Recess
+    second: {fileID: 2100000, guid: 22e6d00a84514e441a4b48aff180bfce, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tenshu_Raised_Kawara_Ribs
+    second: {fileID: 2100000, guid: f65a3e21bb0c1384ea1376c5b9e78ba2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tenshu_Warm_White_Plaster
+    second: {fileID: 2100000, guid: 80e772a529624d64a89f83a0a2630a91, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

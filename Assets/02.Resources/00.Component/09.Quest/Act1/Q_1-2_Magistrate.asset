@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_1-2_Magistrate
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 1-2
+  act: "1\uB9C9"
+  title: "\uD574\uC6D4\uB3C4 \uD604\uAC10"
+  giver: "\uD604\uAC10 \uC870\uBA85\uAD6C"
+  summary: "\uC219\uBD80\uC758 \uC18C\uAC1C\uB85C \uD574\uC6D4\uB3C4 \uD604\uAC10
+    \uC870\uBA85\uAD6C\uB97C \uB9CC\uB098 \uC65C\uAD6C \uD1A0\uBC8C\uC744 \uC758\uB8B0\uBC1B\uB294\uB2E4(\uD604\uAC10\uC740
+    \uB300\uBE44\uD30C \u2014 \uD61C\uB294 \uBAA8\uB978\uB2E4)."
+  onStart: []
+  introDialogue: []
+  objectives:
+  - type: 0
+    description: "\uAD00\uC544\uB85C \uAC00\uC11C \uD604\uAC10 \uC870\uBA85\uAD6C
+      \uB9CC\uB098\uAE30"
+    targetId: hyeongam
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uD604\uAC10 \uC870\uBA85\uAD6C"
+      text: "\uC219\uBD80 \uB418\uC2DC\uB294 \uBD84\uAED8 \uC774\uC57C\uAE30\uB294
+        \uB4E4\uC5C8\uC18C. \uBC30\uB97C \uBAB0\uACE0 \uC65C\uAD6C\uC640 \uC2F8\uC6E0\uB2E4\uC9C0?"
+    - speaker: "\uD61C"
+      text: "\uC608. \uBB34\uC5C7\uC744 \uB3C4\uC640\uB4DC\uB9AC\uBA74 \uB418\uACA0\uC2B5\uB2C8\uAE4C."
+    - speaker: "\uD604\uAC10 \uC870\uBA85\uAD6C"
+      text: "\uC694\uC998 \uC65C\uAD6C\uAC00 \uD574\uC6D4\uB3C4 \uC55E\uBC14\uB2E4\uB97C
+        \uC81C\uC9D1\uCC98\uB7FC \uB4DC\uB098\uB4DC\uC624. \uAD00\uAD70 \uBC30\uB85C\uB294
+        \uAC10\uB2F9\uC774 \uC548 \uB418\uB2C8, \uADF8\uB300\uAC00 \uC65C\uAD6C \uBC30
+        \uC5F4 \uCC99\uB9CC \uBC14\uB2E4\uC5D0 \uAC00\uB77C\uC549\uD600 \uC8FC\uC2DC\uC624."
+    - speaker: "\uD604\uAC10 \uC870\uBA85\uAD6C"
+      text: "\uAC12\uC740 \uD6C4\uD788 \uCE58\uB974\uB9AC\uB2E4."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: dcc2007d8f6866543a386827710603ce, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

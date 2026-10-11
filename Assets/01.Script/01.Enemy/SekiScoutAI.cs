@@ -115,8 +115,12 @@ public class SekiScoutAI : EnemyShipBase
     {
         EnemyAI[] fighters = Object.FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
         int count = 0;
+        var mine = GetComponent<ShipFaction>();
         for (int i = 0; i < fighters.Length; i++)
         {
+            // 같은 진영 전투선만 부른다(2026-10-07 왜구 추가 — 왜구 세키부네가 일본군 안택선을 부르지 않게)
+            var theirs = fighters[i].GetComponent<ShipFaction>();
+            if (mine != null && theirs != null && theirs.faction != mine.faction) continue;
             float d = Vector3.Distance(transform.position, fighters[i].transform.position);
             if (d <= alertRadius)
             {

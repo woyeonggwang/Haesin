@@ -58,6 +58,9 @@ public class PlayerRespawn : MonoBehaviour
 
         // 먼저 되살려(침몰로 꺼진 것 복구) 놓고 자세를 잡는다. Rigidbody 가 kinematic 에서 풀린 뒤 position 을 넣어야 한다.
         _health.Revive();
+        // 선원도 되살림(선원 사격으로 쓰러진 해적 — ShipCrew)
+        var crew = GetComponentInChildren<ShipCrew>();
+        if (crew != null) crew.ReviveAll();
         if (_rb != null)
         {
             _rb.linearVelocity = Vector3.zero;

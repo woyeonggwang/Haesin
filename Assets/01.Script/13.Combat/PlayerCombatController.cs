@@ -50,7 +50,7 @@ public class PlayerCombatController : MonoBehaviour
     [Tooltip("두 번째 콤보 직접 키(None = 없음 — 좌클릭 콤보가 자동으로 섞임, SwordCombatant.autoMixCombos).")] public KeyCode comboBKey = KeyCode.None;
     [Tooltip("강베기 직접 키(None = 없음 — 좌클릭 꾹 누르기로 강베기).")] public KeyCode heavyKey = KeyCode.None;
     [Tooltip("좌클릭을 이 시간(초) 이상 누르고 있으면 강베기. 이보다 짧게 눌렀다 떼면 콤보.")] public float heavyHoldTime = 0.35f;
-    float _lmbDownTime = -1f; bool _heavyFired;
+    float _lmbDownTime = -1f; bool _heavyFired; float _nextRetarget;
     [Tooltip("이 비율(달리기 속도 대비) 이상으로 달리는 중 좌클릭이면 달려 베기.")] [Range(0f, 1f)] public float sprintAttackSpeedRatio = 0.75f;
 
 
@@ -70,7 +70,7 @@ public class PlayerCombatController : MonoBehaviour
     {
         if (combatant.target == null || !combatant.target.gameObject.activeInHierarchy) return false;
         var other = combatant.target.GetComponent<SwordCombatant>();
-        if (other == null || other.state == SwordCombatant.State.Dead) return false;
+        if (other == null || other.state == SwordCombatant.State.Dead || other.calm) return false;
         return (combatant.target.position - transform.position).magnitude <= combatRange;
     }
 
@@ -86,8 +86,10 @@ public class PlayerCombatController : MonoBehaviour
 
     void Update()
     {
+        var tc = combatant.target != null ? combatant.target.GetComponent<SwordCombatant>() : null;
         if (combatant.target == null || !combatant.target.gameObject.activeInHierarchy || (combatant.target.position - transform.position).magnitude > targetRange * 1.5f
-            || (combatant.target.GetComponent<SwordCombatant>() != null && combatant.target.GetComponent<SwordCombatant>().state == SwordCombatant.State.Dead)) FindTarget();
+            || (tc != null && tc.state == SwordCombatant.State.Dead) || Time.time >= _nextRetarget)
+        { _nextRetarget = Time.time + 0.5f; FindTarget(); }
 
         // 칼 뽑기/넣기 (대기 중에만). 칼을 넣은 상태에서 공격·막기를 누르면 먼저 뽑는다.
         bool idle = combatant.state == SwordCombatant.State.Idle;
@@ -143,15 +145,18 @@ public class PlayerCombatController : MonoBehaviour
         if (_mover != null) _mover.LockMovement = combatant.LocksMovement;
     }
 
+    /// <summary>가장 가까운 다른 팀(살아 있는) — 덤비는 적(calm 아님)을 먼저, 없으면 가만히 있는 병사(먼저 칠 수 있게).</summary>
     void FindTarget()
     {
-        SwordCombatant best = null; float bestD = targetRange;
+        SwordCombatant best = null, bestCalm = null; float bestD = targetRange, bestCalmD = targetRange;
         foreach (var c in FindObjectsByType<SwordCombatant>(FindObjectsSortMode.None))
         {
             if (c == combatant || c.team == combatant.team || c.state == SwordCombatant.State.Dead) continue;
             float d = Vector3.Distance(c.transform.position, transform.position);
-            if (d < bestD) { bestD = d; best = c; }
+            if (c.calm) { if (d < bestCalmD) { bestCalmD = d; bestCalm = c; } }
+            else if (d < bestD) { bestD = d; best = c; }
         }
+        if (best == null) best = bestCalm;
         combatant.target = best != null ? best.transform : null;
     }
 }

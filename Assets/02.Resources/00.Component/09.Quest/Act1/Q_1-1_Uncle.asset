@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_1-1_Uncle
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 1-1
+  act: "1\uB9C9"
+  title: "\uC219\uBD80\uC640\uC758 \uC7AC\uD68C"
+  giver: "\uC219\uBD80"
+  summary: "\uD574\uC6D4\uB3C4\uC5D0\uC11C \uC219\uBD80\uB77C \uBD80\uB974\uBA70
+    \uB530\uB974\uB358 \uC0AC\uB78C\uC744 \uB9CC\uB09C\uB2E4(\uC2E4\uC740 \uD604\uC655
+    \u2014 \uD61C\uB294 \uBAA8\uB978\uB2E4)."
+  onStart: []
+  introDialogue: []
+  objectives:
+  - type: 2
+    description: "\uD574\uC6D4\uB3C4 \uC120\uCC29\uC7A5\uC73C\uB85C \uAC00\uAE30"
+    targetId: "\uD574\uC6D4\uB3C4_\uC120\uCC29\uC7A5"
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 0
+    description: "\uBC30\uC5D0\uC11C \uB0B4\uB824 \uC219\uBD80\uC640 \uC774\uC57C\uAE30\uD558\uAE30
+      (E 3\uCD08 \uD558\uCC28, F \uB300\uD654)"
+    targetId: suk_bu
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uC219\uBD80"
+      text: "\uD61C\uC57C, \uBB34\uC0AC\uD588\uAD6C\uB098. \uAD00\uAD70\uACFC \uBD80\uB52A\uCCE4\uB2E4\uB294
+        \uC18C\uC2DD\uC740 \uB4E4\uC5C8\uB2E4. \uAC71\uC815 \uB9C8\uB77C, \uADF8\uCABD\uC5D0\uB294
+        \uB0B4\uAC00 \uB9D0\uC744 \uB123\uC5B4 \uB450\uC5C8\uB2E4."
+    - speaker: "\uD61C"
+      text: "\uC219\uBD80\uB2D8. \uC65C\uAD6C\uAC00 \uAC08\uC218\uB85D \uAE30\uC2B9\uC785\uB2C8\uB2E4.
+        \uC9C0\uB098\uB294 \uC12C\uB9C8\uB2E4 \uBD88\uD0C4 \uBC30\uAC00 \uB5A0\uB2E4\uB140\uC694."
+    - speaker: "\uC219\uBD80"
+      text: "\uADF8\uB798\uC11C \uB108\uB97C \uBD88\uB800\uB2E4. \uC774 \uC12C \uD604\uAC10\uC774
+        \uC65C\uAD6C \uC77C\uB85C \uACE8\uCE58\uB97C \uC369\uACE0 \uC788\uC9C0. \uB124
+        \uC19C\uC528\uB77C\uBA74 \uB3C4\uC6C0\uC774 \uB420 \uAC8C\uB2E4."
+    - speaker: "\uC219\uBD80"
+      text: "\uAC00\uC11C \uB0B4 \uC774\uB984\uC744 \uB300\uAC70\uB77C. \u2026\uADF8\uB9AC\uACE0
+        \uD61C\uC57C, \uC5B4\uB514\uC11C\uB4E0 \uB124 \uC774\uB984\uC744 \uD568\uBD80\uB85C
+        \uBC1D\uD788\uC9C0\uB294 \uB9C8\uB77C."
+    - speaker: "\uD61C"
+      text: "\uB298 \uD558\uC2DC\uB294 \uB9D0\uC500\uC774\uC2DC\uB124\uC694. \uC54C\uACA0\uC2B5\uB2C8\uB2E4,
+        \uC219\uBD80\uB2D8."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: 66a62c8cf80dbc6448f727f7132f1397, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

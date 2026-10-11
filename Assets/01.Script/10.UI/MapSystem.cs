@@ -57,6 +57,13 @@ public partial class MapSystem : MonoBehaviour
     public float minimapChartPixels = 300f;
     public Color enemyJapanese = new Color(0.95f, 0.22f, 0.15f);
     public Color enemyNavy = new Color(0.35f, 0.60f, 1.00f);
+    [Tooltip("왜구 배(2026-10-07).")] public Color enemyWokou = new Color(0.70f, 0.35f, 0.90f);
+
+    /// <summary>퀘스트 목표 위치(QuestManager 가 정함, 2026-10-07). 켜져 있으면 미니맵(가장자리에 붙임)·큰 지도에 금색 점으로 그린다.</summary>
+    public static bool questTargetActive;
+    public static Vector3 questTarget;
+    public static string questTargetLabel = "";
+    Image _questMini, _questFull; Text _questFullLabel;
     public Color enemyMerchant = new Color(0.95f, 0.80f, 0.30f);
 
     [Header("상태 (읽기 전용)")]
@@ -276,6 +283,27 @@ public partial class MapSystem : MonoBehaviour
         for (int i = used; i < _markerPool.Count; i++)
             if (_markerPool[i].gameObject.activeSelf) _markerPool[i].gameObject.SetActive(false);
         minimapMarkers = used;
+
+        // 퀘스트 목표: 미니맵 밖이면 가장자리에 붙여 방향만 보여 줌
+        if (_questMini == null)
+        {
+            _questMini = NewImage("Quest", _miniMarkerHolder, CircleSprite(), new Color(1f, 0.82f, 0.25f, 1f));
+            _questMini.raycastTarget = false;
+            _questMini.gameObject.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.9f);
+        }
+        if (questTargetActive)
+        {
+            Vector2 qd = (new Vector2(questTarget.x, questTarget.z) - center) * ppm;
+            float lim = half - 8f;
+            float k = Mathf.Max(Mathf.Abs(qd.x), Mathf.Abs(qd.y));
+            bool inside = k <= lim;
+            if (!inside) qd *= lim / k;
+            _questMini.rectTransform.anchoredPosition = qd;
+            float qs = inside ? 14f : 10f;
+            _questMini.rectTransform.sizeDelta = new Vector2(qs, qs);
+            if (!_questMini.gameObject.activeSelf) _questMini.gameObject.SetActive(true);
+        }
+        else if (_questMini.gameObject.activeSelf) _questMini.gameObject.SetActive(false);
     }
 
     void UpdateFullMap()
@@ -298,6 +326,24 @@ public partial class MapSystem : MonoBehaviour
             _fullBase.anchoredPosition = (new Vector2(basePos.x, basePos.z) - _fullCenter) * ppm;
         }
         else _fullBase.gameObject.SetActive(false);
+
+        if (_questFull == null)
+        {
+            _questFull = NewImage("Quest", _fullView, CircleSprite(), new Color(1f, 0.82f, 0.25f, 1f));
+            _questFull.raycastTarget = false;
+            _questFull.rectTransform.sizeDelta = new Vector2(18f, 18f);
+            _questFull.gameObject.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.9f);
+            _questFullLabel = NewText("Label", _questFull.rectTransform, "", 18, TextAnchor.MiddleLeft, new Color(1f, 0.9f, 0.55f));
+            _questFullLabel.rectTransform.anchoredPosition = new Vector2(112f, 0f);
+            _questFullLabel.rectTransform.sizeDelta = new Vector2(200f, 24f);
+            _questFullLabel.gameObject.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.8f);
+        }
+        _questFull.gameObject.SetActive(questTargetActive);
+        if (questTargetActive)
+        {
+            _questFull.rectTransform.anchoredPosition = (new Vector2(questTarget.x, questTarget.z) - _fullCenter) * ppm;
+            if (_questFullLabel.text != questTargetLabel) _questFullLabel.text = questTargetLabel;
+        }
     }
 
     bool TryGetBase(out Vector3 pos)
@@ -319,6 +365,7 @@ public partial class MapSystem : MonoBehaviour
     {
         if (s.GetComponent<MerchantAI>() != null) return enemyMerchant;
         if (s.faction == Faction.Navy) return enemyNavy;
+        if (s.faction == Faction.Wokou) return enemyWokou;
         return enemyJapanese;
     }
 

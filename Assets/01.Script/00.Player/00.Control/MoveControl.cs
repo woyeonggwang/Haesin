@@ -41,6 +41,8 @@ public class MoveControl : MonoBehaviour
     public float rudderMinSpeed = 0.4f;
     [Tooltip("이 속도에서 방향타가 100% 듣는다(m/s).")]
     public float rudderFullSpeed = 4f;
+    [Tooltip("멈춰 있을 때도 도는 비율(0~1). 판옥선은 노를 좌우 반대로 저어 제자리에서 돈다(2026-10-06 사용자 지시 \"가만히 있어도 회전, 고증\"). 0 이면 예전처럼 속도가 있어야 돈다.")]
+    [Range(0f, 1f)] public float pivotTurnAuthority = 1f;
     [Tooltip("후진 중에는 조타 방향이 반대가 된다.")]
     public bool invertSteerWhenReversing = true;
 
@@ -52,10 +54,13 @@ public class MoveControl : MonoBehaviour
     [Tooltip("옆미끄러짐 억제. 배는 옆으로 잘 밀리지 않으므로 크게 준다.")]
     public float lateralGrip = 4f;
 
-    [Header("부스트")]
-    public float boostMultiplier = 1.6f;
+    [Header("부스트 (Space)")]
+    [Tooltip("부스트 최대 배율(최고 속도·가속에 곱함). 2026-10-06 사용자 지시: 서서히 4 배까지.")]
+    public float boostMultiplier = 4f;
     [Tooltip("부스트가 최대까지 오르는 시간(초).")]
-    public float boostRiseTime = 2f;
+    public float boostRiseTime = 6f;
+    [Tooltip("미는 동안 물 저항을 상쇄해 가속이 일정하게(최고 속도 근처까지 같은 가속). 끄면 예전처럼 저항 때문에 최고 속도에 천천히 다가감(그래서 무겁게 느껴졌음).")]
+    public bool constantAcceleration = true;
     [Tooltip("부스트가 풀리는 시간(초).")]
     public float boostFallTime = 1.5f;
     [Tooltip("부스트 게이지 UI. 없어도 된다.")]
@@ -146,7 +151,15 @@ public class MoveControl : MonoBehaviour
             // 이미 최고 속도면 더 밀지 않는다
             bool canPush = _inputThrottle > 0f ? currentSpeed < speedCap : currentSpeed > -maxReverseSpeed;
             if (canPush)
+            {
                 _rb.AddForce(fwd * accel * _inputThrottle, ForceMode.Acceleration);
+                // 저항 상쇄(아래 전후 저항과 같은 크기) — 최고 속도 바로 앞에서 상쇄를 줄여 넘지 않게
+                if (constantAcceleration)
+                {
+                    float room = _inputThrottle > 0f ? Mathf.Clamp01((speedCap - currentSpeed) / Mathf.Max(0.5f, speedCap * 0.05f)) : 1f;
+                    _rb.AddForce(fwd * currentSpeed * linearDrag * room, ForceMode.Acceleration);
+                }
+            }
         }
 
         // ---- 전후 저항 ----
@@ -160,6 +173,7 @@ public class MoveControl : MonoBehaviour
         // 배는 물을 밀어야 방향타가 듣는다. 속도가 없으면 거의 못 돈다.
         float speedForRudder = Mathf.Abs(currentSpeed);
         float authority = Mathf.Clamp01(Mathf.InverseLerp(rudderMinSpeed, rudderFullSpeed, speedForRudder));
+        authority = Mathf.Max(authority, pivotTurnAuthority); // 판옥선: 제자리 선회
 
         float steer = _inputSteer;
         if (invertSteerWhenReversing && currentSpeed < -0.1f) steer = -steer;

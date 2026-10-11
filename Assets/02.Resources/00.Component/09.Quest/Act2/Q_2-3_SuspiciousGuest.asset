@@ -1,0 +1,168 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_2-3_SuspiciousGuest
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 2-3
+  act: "2\uB9C9"
+  title: "\uC758\uC2EC\uBC1B\uB294 \uC190\uB2D8"
+  giver: "\uC601\uC8FC \uAD6C\uB85C\uC138 \uB9C8\uC0AC\uD1A0\uD0A4"
+  summary: "[\uD638\uC704] \uC870\uC120\uC5D0\uC11C \uC628 \uD61C\uB97C \uBBFF\uC9C0
+    \uBABB\uD558\uB294 \uC601\uC8FC\uAC00 \uC2DC\uD5D8 \uC0BC\uC544 \uC300 \uC218\uC1A1\uC120
+    \uD638\uC704\uB97C \uB9E1\uAE34\uB2E4. \uB3C4\uC911\uC5D0 \uC65C\uAD6C\uAC00
+    \uC2B5\uACA9\uD55C\uB2E4."
+  onStart: []
+  introDialogue: []
+  objectives:
+  - type: 0
+    description: "\uC131\uC73C\uB85C \uC62C\uB77C\uAC00 \uC601\uC8FC \uAD6C\uB85C\uC138
+      \uB9CC\uB098\uAE30"
+    targetId: kurose
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uD558\uC57C\uC2DC\uAC00 \uBCF4\uB0B8 \uC870\uC120 \uC0AC\uB78C\uC774
+        \uADF8\uB300\uC778\uAC00."
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uC870\uC120 \uBC30\uAC00 \uC65C\uAD6C\uB97C \uCE5C\uB2E4? \uC27D\uAC8C
+        \uBBFF\uAE30\uC9C0 \uC54A\uB294\uAD70. \uC870\uC120\uACFC \uC65C\uAD6C\uAC00
+        \uD55C\uD1B5\uC18D\uC774\uB77C\uB294 \uB9D0\uB3C4 \uB3C8\uB2E4."
+    - speaker: "\uD61C"
+      text: "\uBBFF\uC9C0 \uBABB\uD558\uC2DC\uACA0\uB2E4\uBA74 \uC2DC\uD5D8\uD574
+        \uBCF4\uC2ED\uC2DC\uC624."
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uC88B\uB2E4. \uB0B4 \uC300 \uC218\uC1A1\uC120\uC774 \uBD81\uC11C \uD3EC\uAD6C\uB85C
+        \uB098\uAC04\uB2E4. \uBB34\uC0AC\uD788 \uB2FF\uAC8C \uC9C0\uCF1C\uB77C. \uADF8\uB7EC\uBA74
+        \uADF8\uB300 \uB9D0\uC744 \uBBFF\uC5B4 \uC8FC\uC9C0."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 2
+    description: "\uBC30\uB85C \uB3CC\uC544\uAC00 \uD56D\uAD6C \uC55E\uBC14\uB2E4\uB85C"
+    targetId: "\uAD6C\uB85C\uC138_\uD56D\uAD6C"
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 5
+    description: "\uC300 \uC218\uC1A1\uC120\uC744 \uBD81\uC11C \uD3EC\uAD6C\uAE4C\uC9C0
+      \uD638\uC704"
+    targetId: "\uAD6C\uB85C\uC138_\uBD81\uC11C\uD3EC\uAD6C"
+    faction: 3
+    count: 3
+    radius: 0
+    onBegin: []
+    onEnd:
+    - type: 5
+      text: kurose_castle
+      faction: 1
+      value: 0
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    - type: 5
+      text: kurose_harbor
+      faction: 1
+      value: 1
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates:
+    - seki_wokou
+    keepAlive: 2
+    spawnDistance: 260
+    marker: "\uAD6C\uB85C\uC138_\uD638\uC704\uCD9C\uBC1C"
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 0
+    description: "\uD56D\uAD6C\uC5D0\uC11C \uC601\uC8FC\uC5D0\uAC8C \uC54C\uB9AC\uAE30"
+    targetId: kurose_harbor
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uC218\uC1A1\uC120\uC774 \uBB34\uC0AC\uD788 \uB2FF\uC558\uB2E4\uB294
+        \uC804\uAC08\uC744 \uBC1B\uC558\uC18C. \uC65C\uAD6C\uAC00 \uC77C\uBCF8 \uBC30\uAE4C\uC9C0
+        \uB178\uB9AC\uB294 \uAC78 \uADF8\uB300\uB3C4 \uBCF4\uC558\uACA0\uC9C0."
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\u2026\uB188\uB4E4\uC740 \uB204\uAD6C\uC758 \uD3B8\uB3C4 \uC544\uB2C8\uAD70.
+        \uADF8\uB300\uB97C \uC758\uC2EC\uD55C \uAC74 \uC0AC\uACFC\uD558\uB9AC\uB2E4."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete:
+  - type: 4
+    text: 
+    faction: 1
+    value: 200
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: ce329107268fe51498323a26a906d39c, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

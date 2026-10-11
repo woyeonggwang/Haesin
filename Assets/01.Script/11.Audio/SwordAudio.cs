@@ -21,6 +21,10 @@ public class SwordAudio : MonoBehaviour
     public AudioClip[] clashClips = new AudioClip[0];
     [Range(0f, 1f)] public float clashVolume = 0.6f;
 
+    [Header("베이는 소리(2026-10-06 — 이 사람이 칼에 맞았을 때: 피격·위험 공격 피격·결정타)")]
+    public AudioClip[] fleshClips = new AudioClip[0];
+    [Range(0f, 1f)] public float fleshVolume = 0.3f;
+
     [Header("칼 뽑기·넣기 (WeaponHolder.OnSwordMoved — 검이 손↔칼집으로 옮겨지는 순간)")]
     public AudioClip[] drawClips = new AudioClip[0];
     [Range(0f, 1f)] public float drawVolume = 0.1f;
@@ -33,7 +37,7 @@ public class SwordAudio : MonoBehaviour
     [Tooltip("재생마다 피치를 이 범위에서 무작위로(같은 소리 반복 느낌 줄이기).")] public Vector2 pitchRange = new Vector2(0.95f, 1.05f);
 
     SwordCombatant _sc; WeaponHolder _weapon;
-    int _lastSwing = -1, _lastClash = -1, _lastDraw = -1, _lastSheathe = -1;
+    int _lastSwing = -1, _lastClash = -1, _lastDraw = -1, _lastSheathe = -1, _lastFlesh = -1;
 
     void Awake() { _sc = GetComponent<SwordCombatant>(); _weapon = GetComponent<WeaponHolder>(); }
 
@@ -77,15 +81,24 @@ public class SwordAudio : MonoBehaviour
     {
         if (who != _sc || string.IsNullOrEmpty(what)) return;
         if (what == "막기" || what.StartsWith("튕겨내기")) Play(clashClips, ref _lastClash, clashVolume);
+        else if (what == "피격" || what == "위험 공격 피격" || what == "결정타") PlayAt(fleshClips, ref _lastFlesh, fleshVolume, transform.position + Vector3.up * 1.2f);
     }
 
+    /// <summary>다른 것(마을 사람 등)을 벤 소리 — 이 사람(공격자)의 베이는 소리 음원으로 pos 에서.</summary>
+    public void PlayFleshAt(Vector3 pos) { PlayAt(fleshClips, ref _lastFlesh, fleshVolume, pos); }
+
     void Play(AudioClip[] clips, ref int last, float volume)
+    {
+        Vector3 pos = _weapon != null && _weapon.sword != null ? _weapon.sword.position : transform.position + Vector3.up * 1.2f;
+        PlayAt(clips, ref last, volume, pos);
+    }
+
+    void PlayAt(AudioClip[] clips, ref int last, float volume, Vector3 pos)
     {
         if (clips == null || clips.Length == 0 || volume <= 0f) return;
         int i = Random.Range(0, clips.Length);
         if (clips.Length > 1 && i == last) i = (i + 1 + Random.Range(0, clips.Length - 1)) % clips.Length;
         last = i;
-        Vector3 pos = _weapon != null && _weapon.sword != null ? _weapon.sword.position : transform.position + Vector3.up * 1.2f;
         OneShotAudio.Play(clips[i], pos, volume, minDistance, maxDistance, Random.Range(pitchRange.x, pitchRange.y));
     }
 }

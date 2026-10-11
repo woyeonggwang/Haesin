@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -27,6 +27,8 @@ public class WeatherSystem : MonoBehaviour
     public Transform rainFollowTarget;
     [Tooltip("대상의 회전은 무시하고 위치만 따라간다. 배가 출렁여도 비가 같이 기울지 않는다.")]
     public bool rainIgnoreTargetRotation = true;
+    [Tooltip("승·하차 시스템. 하차 중(IsOnFoot)이면 비가 배 대신 캐릭터(OnFootRoot)를 따라간다. 비우면 자동 탐색.")]
+    public BoardingSystem boarding;
 
     [Header("날씨 목록")]
     public List<WeatherPreset> presets = new List<WeatherPreset>();
@@ -82,6 +84,8 @@ public class WeatherSystem : MonoBehaviour
     [Header("비 - 바람 (한쪽 쏠림 방지)")]
     [Tooltip("RainMaker 자체 바람(WindZone)을 끈다. 켜두면 5~30초마다 windMain 이 50~100 으로 무작위 설정되고 방향도 무작위로 바뀌어서, 영역을 키우고 수명을 늘릴수록 비가 통째로 한쪽으로 날아간다.")]
     public bool rainDisableAssetWind = true;
+    [Tooltip("RainMaker 의 안개 입자(RainMistParticleSystem)를 끈다. 강수량 0.5 이상에서 뿌옇게 떠다니는 큰 입자가 비현실적이라 뺌(사용자 지시, 2026-10-04).")]
+    public bool rainDisableMist = true;
     [Tooltip("빗줄기를 일정하게 기울이는 세기(m/s). 0 이면 수직으로 떨어진다. 자연스러운 정도는 3~8.")]
     public float rainWindTilt = 0f;
     [Tooltip("빗줄기가 기울어지는 방향(도, 월드 Y축 기준). 0 = +Z")]
@@ -114,6 +118,9 @@ public class WeatherSystem : MonoBehaviour
 
     private HDAdditionalLightData _sunHD;
 
+    [Tooltip("Physically Based Sky 일 때 이 하늘 밝기(skyExposure)를 보정 0 으로 봄 — 맑음 프리셋 값.")]
+    public float pbSkyReferenceExposure = 14f;
+
     [Header("비 가림 (동굴·지붕)")]
     [Tooltip("켜면 비 영역 위로 레이를 쏘아 바위·지붕에 가려진 만큼 비를 줄인다. 베이스 동굴 안에서 비가 뚫고 내리지 않게 하기 위한 것.")]
     public bool rainCoverCheck = true;
@@ -123,6 +130,10 @@ public class WeatherSystem : MonoBehaviour
     public float rainCoverSampleRadius = 40f;
     [Tooltip("가림 비율이 바뀔 때 비가 따라가는 속도(초).")]
     public float rainCoverSmoothTime = 0.8f;
+    [Tooltip("하차 중 가림 판정 샘플 반경(m). 사람 둘레만 본다(배 기준 40 m 면 거리에서 옆 건물 지붕에 걸려 비가 줄어듦).")]
+    public float rainCoverSampleRadiusOnFoot = 3f;
+    [Tooltip("하차 중 가림 판정 레이 시작 높이 = 캐릭터 발 + 이 값(m). 배일 때는 돛대 위인 월드 y 35 에서 쏜다.")]
+    public float rainCoverStartAboveFoot = 2.2f;
     [Tooltip("읽기 전용: 현재 가려진 비율 0(노천)~1(완전 실내).")]
     public float rainCovered01;
     private float _rainCoverVel;
@@ -170,15 +181,27 @@ public class WeatherSystem : MonoBehaviour
         Apply(_blended);
     }
 
+    /// <summary>
+    /// 하늘을 정하는 전역 볼륨(VisualEnvironment 가 든 것, 메뉴 뷰어 `Showcase*` 볼륨 제외). 2026-10-09 — 예전엔 첫 전역 볼륨을 잡아서
+    /// 인벤토리 뷰어 볼륨(ShowcaseStage_InventoryMenu)을 잡는 일이 있었음(날씨의 구름·안개·하늘 밝기가 실제 하늘에 안 들어감).
+    /// </summary>
+    public static Volume FindSkyVolume()
+    {
+        Volume any = null;
+        foreach (var v in Object.FindObjectsByType<Volume>(FindObjectsSortMode.None))
+        {
+            if (!v.isGlobal || v.sharedProfile == null || v.name.StartsWith("Showcase")) continue;
+            if (v.sharedProfile.Has<VisualEnvironment>()) return v;
+            if (any == null) any = v;
+        }
+        return any;
+    }
+
     void Resolve()
     {
         if (ocean == null) ocean = Object.FindFirstObjectByType<WaterSurface>();
 
-        if (skyVolume == null)
-        {
-            foreach (var v in Object.FindObjectsByType<Volume>(FindObjectsSortMode.None))
-                if (v.isGlobal && v.sharedProfile != null) { skyVolume = v; break; }
-        }
+        if (skyVolume == null) skyVolume = FindSkyVolume();
 
         if (skyVolume != null)
         {
@@ -223,6 +246,12 @@ public class WeatherSystem : MonoBehaviour
                 _rainScript.FollowCamera = false;
                 if (_rainScript.Camera == null) _rainScript.Camera = Camera.main;
                 _rainScript.RainIntensity = 0f;
+                // 안개 입자: RainScript.Start 가 아직 안 돌았으므로 참조를 비우면 재질 설정·방출을 모두 건너뛴다.
+                if (rainDisableMist && _rainScript.RainMistParticleSystem != null)
+                {
+                    _rainScript.RainMistParticleSystem.gameObject.SetActive(false);
+                    _rainScript.RainMistParticleSystem = null;
+                }
             }
             else Debug.LogWarning("[WeatherSystem] rainPrefab 에 RainScript 가 없습니다.");
 
@@ -334,7 +363,8 @@ public class WeatherSystem : MonoBehaviour
     void UpdateRainCover()
     {
         if (!rainCoverCheck) { rainCovered01 = 0f; return; }
-        Transform origin = rainFollowTarget != null ? rainFollowTarget : (Camera.main != null ? Camera.main.transform : null);
+        Transform origin = CurrentRainTarget();
+        bool onFoot = IsOnFoot();
         if (origin == null) { rainCovered01 = 0f; return; }
 
         float target = rainCovered01;
@@ -343,12 +373,14 @@ public class WeatherSystem : MonoBehaviour
             _nextCoverCheck = Time.time + 0.25f;
             int mask = rainCoverIgnore.value != 0 ? ~rainCoverIgnore.value : ~(1 << LayerMask.NameToLayer("Water"));
             int blocked = 0, total = 0;
-            float r = Mathf.Max(1f, rainCoverSampleRadius);
+            float r = Mathf.Max(0.5f, onFoot ? rainCoverSampleRadiusOnFoot : rainCoverSampleRadius);
+            // 배: 돛대 위(월드 y 35)에서 쏴 자기 배를 안 맞힘. 하차: 머리 위에서 쏨 — 땅이 35 m 넘는 곳(산·성 고원)에서는 y 35 가 땅속이라.
+            float startY = onFoot ? origin.position.y + rainCoverStartAboveFoot : 35f;
             for (int ix = -1; ix <= 1; ix++)
                 for (int iz = -1; iz <= 1; iz++)
                 {
                     Vector3 p = origin.position + new Vector3(ix * r, 0f, iz * r);
-                    p.y = 35f;
+                    p.y = startY;
                     total++;
                     if (Physics.Raycast(p, Vector3.up, 600f, mask, QueryTriggerInteraction.Ignore)) blocked++;
                 }
@@ -358,6 +390,24 @@ public class WeatherSystem : MonoBehaviour
         rainCovered01 = Mathf.SmoothDamp(rainCovered01, _lastCoverTarget, ref _rainCoverVel, Mathf.Max(0.01f, rainCoverSmoothTime));
     }
     private float _lastCoverTarget;
+
+    private bool _boardingSearched;   // 씬에 BoardingSystem 이 없을 때(CharacterTest 등) 매 프레임 찾지 않게
+    bool IsOnFoot()
+    {
+        if (boarding == null && !_boardingSearched) { _boardingSearched = true; boarding = Object.FindFirstObjectByType<BoardingSystem>(); }
+        return boarding != null && boarding.IsOnFoot && boarding.onFootRoot != null;
+    }
+
+    /// <summary>
+    /// 비가 따라갈 대상. 하차 중이면 캐릭터(OnFootRoot), 아니면 rainFollowTarget(배), 그것도 없으면 메인 카메라.
+    /// (예전엔 rainFollowTarget = panok 고정이라 배에서 내려 걸어가면 비가 배에만 내렸음 — 2026-10-04 고침)
+    /// </summary>
+    Transform CurrentRainTarget()
+    {
+        if (IsOnFoot()) return boarding.onFootRoot.transform;
+        if (rainFollowTarget != null) return rainFollowTarget;
+        return Camera.main != null ? Camera.main.transform : null;
+    }
 
     void ApplyRainWind(float intensity)
     {
@@ -650,8 +700,9 @@ public class WeatherSystem : MonoBehaviour
         }
         if (_pbSky != null)
         {
+            // Physically Based Sky 는 밝기가 해에서 나오므로 exposure 는 보정값(맑음 기준 0) — 2026-10-09 밤낮(DayNightCycle)과 함께 하늘을 PBS 로 바꿈
             _pbSky.exposure.overrideState = true;
-            _pbSky.exposure.value = w.skyExposure;
+            _pbSky.exposure.value = w.skyExposure - pbSkyReferenceExposure;
         }
 
         // ---- 안개 ----
@@ -669,8 +720,9 @@ public class WeatherSystem : MonoBehaviour
         if (sun != null)
         {
             sun.color = w.sunColor;
-            if (_sunHD != null) _sunHD.SetIntensity(w.sunLux, LightUnit.Lux);
-            else sun.intensity = w.sunLux;
+            float lux = w.sunLux * DayNightCycle.SunScale; // 밤낮: 해 높이에 따른 배율(DayNightCycle 이 없으면 1)
+            if (_sunHD != null) _sunHD.SetIntensity(lux, LightUnit.Lux);
+            else sun.intensity = lux;
         }
 
         // ---- 비 (RainMaker) ----
@@ -681,9 +733,10 @@ public class WeatherSystem : MonoBehaviour
             ApplyRainDropColor();
 
 
-            if (rainFollowTarget != null && _rainPrefabTr != null)
+            Transform follow = CurrentRainTarget();
+            if (follow != null && _rainPrefabTr != null)
             {
-                _rainPrefabTr.position = rainFollowTarget.position + Vector3.up * rainHeight;
+                _rainPrefabTr.position = follow.position + Vector3.up * rainHeight;
                 if (rainIgnoreTargetRotation) _rainPrefabTr.rotation = Quaternion.identity;
             }
         }
@@ -694,11 +747,12 @@ public class WeatherSystem : MonoBehaviour
             var em = _rain.emission;
             UpdateRainCover();
             em.rateOverTime = maxRainEmission * Mathf.Clamp01(w.rainIntensity) * (1f - rainCovered01);
-            if (rainFollowTarget != null)
+            Transform followSelf = CurrentRainTarget();
+            if (followSelf != null)
             {
                 // 위치만 따라가고 회전은 항상 월드 기준으로 고정한다.
                 // 배의 자식으로 두거나 회전을 따라가면 배가 흔들릴 때 비가 통째로 돈다.
-                _rainTr.position = rainFollowTarget.position + Vector3.up * rainHeight;
+                _rainTr.position = followSelf.position + Vector3.up * rainHeight;
                 if (rainIgnoreTargetRotation) _rainTr.rotation = Quaternion.identity;
             }
         }

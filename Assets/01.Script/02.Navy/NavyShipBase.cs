@@ -204,7 +204,7 @@ public abstract class NavyShipBase : MonoBehaviour
 
         candidate.y = 0f;
         candidate = BaseSafeZone.PushOutside(candidate, 25f); // 순찰 목적지도 베이스 안전지대 밖으로
-        candidate = FactionTerritory.PushOut(MyFaction, candidate, 25f); // 섬 해안·남의 영해 밖으로
+        if (!IgnoreTerritory) candidate = FactionTerritory.PushOut(MyFaction, candidate, 25f); // 섬 해안·남의 영해 밖으로(퀘스트 배는 예외)
         _patrolTarget = candidate;
         _waiting = false;
     }
@@ -234,6 +234,7 @@ public abstract class NavyShipBase : MonoBehaviour
 
     /// <summary>목표 지점을 향해 침로를 잡고 전진한다. 크게 틀어야 하면 속도를 줄인다.</summary>
     Faction MyFaction { get { return _self != null ? _self.faction : Faction.Navy; } }
+    bool IgnoreTerritory { get { return _self != null && _self.ignoreTerritory; } }
 
     protected void SailTowards(Vector3 target, float speedCap)
     {
@@ -247,9 +248,12 @@ public abstract class NavyShipBase : MonoBehaviour
             target = BaseSafeZone.Center + outDir.normalized * (BaseSafeZone.Radius + 60f);
         }
         // 섬(FactionTerritory): 자기 섬은 해안(inner) 밖, 남의 섬은 영해(outer) 밖으로만 다닌다.
-        target = FactionTerritory.PushOut(MyFaction, target, 25f);
         Vector3 exitTerritory;
-        if (FactionTerritory.InsideBlocked(MyFaction, transform.position, out exitTerritory)) target = exitTerritory;
+        if (!IgnoreTerritory)
+        {
+            target = FactionTerritory.PushOut(MyFaction, target, 25f);
+            if (FactionTerritory.InsideBlocked(MyFaction, transform.position, out exitTerritory)) target = exitTerritory;
+        }
 
         Vector3 to = target - transform.position;
         to.y = 0f;

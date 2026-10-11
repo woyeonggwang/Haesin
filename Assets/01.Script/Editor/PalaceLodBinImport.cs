@@ -9,6 +9,11 @@
 //   Cards\*.png  판 텍스처
 //   layout.txt   PREFAB <이름> / PART <이름> <기준 x y z> <크기> <LOD0→1 화면 높이> <LOD1→2> <끝> / MESH <LOD 번호> <메시 이름> [collider]
 //                / DOORS <원래 문짝 프리팹 경로> <새 문짝 프리팹 이름>
+//                / COPYFAR <LOD 번호> <다른 프리팹 경로> <그 안의 오브젝트 경로> — 그 오브젝트의 렌더러를 그대로 가져다 씀
+//                  (LODGroup 이 있으면 마지막(먼) 단계 렌더러만). 건춘문·영추문·신무문은 먼 LOD 로 예전 구운 덩어리를 씀(2026-09-30).
+//                / COPYFARBOX <LOD 번호> <다른 프리팹 경로> <오브젝트 경로> <x최소> <x최대> <z최소> <z최대> — COPYFAR 와 같은 렌더러에서
+//                  무게중심(그 프리팹 루트 좌표)이 상자 안에 든 삼각형만 잘라 새 메시(outFolder/Far/<부분>_<렌더러>.asset)로 씀.
+//                  구운 덩어리는 건물 코드별로 합쳐져 있어, 부분을 건물별로 나눈 영추문(문·건물 3채 따로 LOD)에서 씀(2026-09-30).
 // 순서: ImportMeshes(dir, outFolder, 20) 를 DONE 까지 → BuildDoorsCard → BuildPrefab → Place
 using System;
 using System.Collections.Generic;
@@ -288,6 +293,18 @@ public static class PalaceLodBinImport
                 for (int k = 0; k < 3; k++) cur.h[k] = float.Parse(c[6 + k], inv);
                 parts.Add(cur);
             }
+            else if (c[0] == "COPYFAR")
+            {
+                int lod = int.Parse(c[1]);
+                while (cur.lods.Count <= lod) cur.lods.Add(new List<string>());
+                cur.lods[lod].Add("COPYFAR|" + c[2] + "|" + c[3]);
+            }
+            else if (c[0] == "COPYFARBOX")
+            {
+                int lod = int.Parse(c[1]);
+                while (cur.lods.Count <= lod) cur.lods.Add(new List<string>());
+                cur.lods[lod].Add("COPYFARBOX|" + c[2] + "|" + c[3] + "|" + c[4] + "|" + c[5] + "|" + c[6] + "|" + c[7]);
+            }
             else if (c[0] == "MESH")
             {
                 int lod = int.Parse(c[1]);
@@ -307,6 +324,19 @@ public static class PalaceLodBinImport
                 var rs = new List<Renderer>();
                 foreach (var mn in p.lods[l])
                 {
+                    if (mn.StartsWith("COPYFAR|"))
+                    {
+                        var q = mn.Split('|');
+                        foreach (var r in CopyFar(q[1], q[2], pg.transform)) { rs.Add(r); nr++; }
+                        continue;
+                    }
+                    if (mn.StartsWith("COPYFARBOX|"))
+                    {
+                        var q = mn.Split('|'); var ci = System.Globalization.CultureInfo.InvariantCulture;
+                        var box = new Vector4(float.Parse(q[3], ci), float.Parse(q[4], ci), float.Parse(q[5], ci), float.Parse(q[6], ci));
+                        foreach (var r in CopyFarBox(q[1], q[2], box, pg.transform, outFolder + "/Far", p.name)) { rs.Add(r); nr++; }
+                        continue;
+                    }
                     var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(outFolder + "/Meshes/" + mn + ".asset");
                     if (mesh == null) throw new Exception("메시 없음: " + mn);
                     var o = new GameObject(mn); o.transform.SetParent(pg.transform, false);
@@ -337,6 +367,108 @@ public static class PalaceLodBinImport
         UnityEngine.Object.DestroyImmediate(go);
         if (missing.Count > 0) return "MISSING MATERIALS: " + string.Join(",", missing);
         return "prefab " + path + " parts=" + parts.Count + " renderers=" + nr + " LOD0 tris=" + tris;
+    }
+
+    // 다른 프리팹(예: <단지>_Complex)의 오브젝트에서 렌더러를 복사(메시·재질·그림자만). LODGroup 이 있으면 마지막 단계만.
+    static List<Renderer> CopyFar(string prefabPath, string objectPath, Transform parent)
+    {
+        var root = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (root == null) throw new Exception("프리팹 없음: " + prefabPath);
+        var t = root.transform.Find(objectPath);
+        if (t == null) throw new Exception("오브젝트 없음: " + prefabPath + " / " + objectPath);
+        var srcs = new List<Renderer>();
+        var lg = t.GetComponent<LODGroup>();
+        if (lg != null) { var ls = lg.GetLODs(); foreach (var r in ls[ls.Length - 1].renderers) if (r != null) srcs.Add(r); }
+        else srcs.AddRange(t.GetComponentsInChildren<Renderer>(true));
+        var list = new List<Renderer>();
+        foreach (var r in srcs)
+        {
+            var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+            var o = new GameObject(r.name); o.transform.SetParent(parent, false);
+            var m = root.transform.worldToLocalMatrix * r.transform.localToWorldMatrix;
+            o.transform.localPosition = m.GetColumn(3); o.transform.localRotation = m.rotation; o.transform.localScale = m.lossyScale;
+            o.AddComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
+            var mr = o.AddComponent<MeshRenderer>(); mr.sharedMaterials = r.sharedMaterials; mr.shadowCastingMode = r.shadowCastingMode;
+            list.Add(mr);
+        }
+        return list;
+    }
+
+    // CopyFar 와 같은 렌더러에서 무게중심(프리팹 루트 좌표)이 box(x최소, x최대, z최소, z최대) 안인 삼각형만 잘라 새 메시 에셋으로.
+    // 메시는 원래 렌더러의 자기 좌표 그대로(오브젝트 변환도 원래와 같게), 삼각형이 하나도 없는 서브메시·렌더러는 뺌.
+    // 예전엔 부분 = 건물 코드라 구운 덩어리를 통째로 붙였는데, 영추문은 부분을 건물별로 나누어 구운 덩어리도 건물별로 잘라야 했음.
+    static List<Renderer> CopyFarBox(string prefabPath, string objectPath, Vector4 box, Transform parent, string folder, string partName)
+    {
+        EnsureFolder(folder);
+        var root = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (root == null) throw new Exception("프리팹 없음: " + prefabPath);
+        var t = root.transform.Find(objectPath);
+        if (t == null) throw new Exception("오브젝트 없음: " + prefabPath + " / " + objectPath);
+        var srcs = new List<Renderer>();
+        var lg = t.GetComponent<LODGroup>();
+        if (lg != null) { var ls = lg.GetLODs(); foreach (var r in ls[ls.Length - 1].renderers) if (r != null) srcs.Add(r); }
+        else srcs.AddRange(t.GetComponentsInChildren<Renderer>(true));
+        var list = new List<Renderer>();
+        foreach (var r in srcs)
+        {
+            var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+            var src = mf.sharedMesh;
+            var m = root.transform.worldToLocalMatrix * r.transform.localToWorldMatrix;
+            var v = src.vertices; var nrm = src.normals; var tan = src.tangents; var uv = src.uv;
+            var mats = r.sharedMaterials;
+            var remap = new Dictionary<int, int>();
+            var nv = new List<Vector3>(); var nn = new List<Vector3>(); var nt = new List<Vector4>(); var nu = new List<Vector2>();
+            var subs = new List<int[]>(); var subMats = new List<Material>();
+            for (int s = 0; s < src.subMeshCount; s++)
+            {
+                var tri = src.GetTriangles(s); var keep = new List<int>();
+                for (int i = 0; i + 2 < tri.Length; i += 3)
+                {
+                    var c = m.MultiplyPoint3x4((v[tri[i]] + v[tri[i + 1]] + v[tri[i + 2]]) / 3f);
+                    if (c.x < box.x || c.x >= box.y || c.z < box.z || c.z >= box.w) continue;
+                    for (int k = 0; k < 3; k++)
+                    {
+                        int o = tri[i + k]; int ni;
+                        if (!remap.TryGetValue(o, out ni))
+                        {
+                            ni = nv.Count; remap[o] = ni; nv.Add(v[o]);
+                            if (nrm.Length == v.Length) nn.Add(nrm[o]);
+                            if (tan.Length == v.Length) nt.Add(tan[o]);
+                            if (uv.Length == v.Length) nu.Add(uv[o]);
+                        }
+                        keep.Add(ni);
+                    }
+                }
+                if (keep.Count == 0) continue;
+                subs.Add(keep.ToArray());
+                subMats.Add(s < mats.Length ? mats[s] : (mats.Length > 0 ? mats[mats.Length - 1] : null));
+            }
+            if (subs.Count == 0) continue;
+            var mname = partName + "_" + r.name;
+            var ap = folder + "/" + mname + ".asset";
+            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(ap);
+            bool isNew = mesh == null;
+            if (isNew) mesh = new Mesh();
+            mesh.Clear();
+            mesh.name = mname;
+            mesh.indexFormat = nv.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16;
+            mesh.SetVertices(nv);
+            if (nn.Count == nv.Count) mesh.SetNormals(nn);
+            if (nt.Count == nv.Count) mesh.SetTangents(nt);
+            if (nu.Count == nv.Count) mesh.SetUVs(0, nu);
+            mesh.subMeshCount = subs.Count;
+            for (int s = 0; s < subs.Count; s++) mesh.SetTriangles(subs[s], s, false);
+            mesh.RecalculateBounds();
+            PalaceMeshCompact.CompactMesh(mesh);
+            if (isNew) AssetDatabase.CreateAsset(mesh, ap); else EditorUtility.SetDirty(mesh);
+            var o2 = new GameObject(r.name); o2.transform.SetParent(parent, false);
+            o2.transform.localPosition = m.GetColumn(3); o2.transform.localRotation = m.rotation; o2.transform.localScale = m.lossyScale;
+            o2.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var mr = o2.AddComponent<MeshRenderer>(); mr.sharedMaterials = subMats.ToArray(); mr.shadowCastingMode = r.shadowCastingMode;
+            list.Add(mr);
+        }
+        AssetDatabase.SaveAssets();
+        return list;
     }
 
     static Dictionary<string, List<string>> subMatCache;

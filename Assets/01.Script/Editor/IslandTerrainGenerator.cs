@@ -13,7 +13,7 @@ using UnityEngine;
 /// </summary>
 public static class IslandTerrainGenerator
 {
-    public enum Kind { JoseonLarge, JoseonMid, SmallPeak, SmallTwin, JapanCastle }
+    public enum Kind { JoseonLarge, JoseonMid, SmallPeak, SmallTwin, JapanCastle, Wokou }
 
     public struct Def
     {
@@ -31,7 +31,17 @@ public static class IslandTerrainGenerator
         new Def("Joseon_Small_B", "Plan_Joseon_Small_600_B", Kind.SmallTwin, 600f, 41, -90f, new[] { "panok_navy" }),
         // 일본섬: 처음 800 은 둥근 모양·만 때문에 실제 땅이 좁아(사용자 지적) 1100 으로 키움
         new Def("Japan_Castle", "Plan_Japan_1100",        Kind.JapanCastle, 1100f, 53, 135f, new[] { "anteck", "seki" }),
+        // 왜구섬(2026-10-07, 사용자 선택 "일본섬 남서쪽 무인도"): 작은 바위섬, 선착장은 일본섬 쪽(북동 30°) 만 안, 그 뒤 소굴 터(약 6 m 평지), 남서쪽 산(약 60 m).
+        new Def("Wokou_Den",    "Plan_Wokou_400",         Kind.Wokou,       400f, 67, 30f, new[] { "seki_wokou", "anteck_wokou" }),
     };
+
+    /// <summary>섬 하나만 만든다(이름 = Def.key). 다른 섬은 손대지 않음 — 메뉴(전부 다시 만들기)는 손으로 다듬은 섬을 덮어써서 비활성.</summary>
+    public static Terrain GenerateOne(string key)
+    {
+        foreach (var d in Islands) if (d.key == key) { var t = Generate(d); AssetDatabase.SaveAssets(); return t; }
+        Debug.LogError("[Island] 없는 섬: " + key);
+        return null;
+    }
 
     const float Margin = 200f;      // 육지 밖 해저 경사 폭(m)
     const float BaseY = -60f, SizeY = 300f; // 높이 범위 −60 ~ +240
@@ -208,9 +218,9 @@ public static class IslandTerrainGenerator
         g.transform.position = new Vector3(c.x, 0f, c.y);
         var ft = g.GetComponent<FactionTerritory>();
         if (ft == null) ft = g.AddComponent<FactionTerritory>();
-        ft.faction = d.kind == Kind.JapanCastle ? Faction.Japanese : Faction.Navy;
+        ft.faction = d.kind == Kind.JapanCastle ? Faction.Japanese : d.kind == Kind.Wokou ? Faction.Wokou : Faction.Navy;
         ft.innerRadius = Mathf.Round(1.35f * d.land * 0.5f + 60f);
-        ft.outerRadius = ft.innerRadius + 700f;
+        ft.outerRadius = ft.innerRadius + (d.kind == Kind.Wokou ? 400f : 700f); // 왜구섬은 작은 소굴이라 영해도 좁게(일본 영해와 약 380 m 만 겹침)
     }
 
     // ================= 높이 함수 =================
@@ -272,6 +282,7 @@ public static class IslandTerrainGenerator
             case Kind.JoseonMid: dn += 0.90f * Gauss(x, z, 0.35f * S, -1.0f * S, 0.26f * S); break;
             case Kind.SmallTwin: dn += 0.90f * Gauss(x, z, 0f, -1.0f * S, 0.24f * S); break;
             case Kind.JapanCastle: dn += 0.55f * Gauss(x, z, -0.80f * S, 0.80f * S, 0.18f * S); break;
+            case Kind.Wokou: dn += 0.80f * Gauss(x, z, 0.92f * S * 0.866f, 0.92f * S * 0.5f, 0.24f * S); break; // 선착장 쪽(30°) 숨은 만
         }
         return (1f - dn) * S;
     }
@@ -342,6 +353,17 @@ public static class IslandTerrainGenerator
                 y = Mathf.Lerp(y, 26f, SmoothStep(150f, 112f, r));
                 y = Mathf.Lerp(y, 42f, SmoothStep(78f, 58f, r));
                 return y;
+            }
+            case Kind.Wokou:
+            {
+                // 남서쪽 바위산(약 60 m, 거친 능선) + 북동쪽 만 뒤 소굴 터(약 6 m 평지, 단 2 m) — 배를 숨기는 바위섬.
+                float hill = 58f * Gauss(x, z, -0.32f * S, -0.30f * S, 0.36f * S) * (0.7f + 0.5f * Ridged(x / 70f, z / 70f, d.seed + 12, 4));
+                float spur = 30f * Gauss(x, z, 0.30f * S, -0.55f * S, 0.20f * S) * (0.8f + 0.4f * Ridged(x / 50f, z / 50f, d.seed + 13, 3)); // 남동 곶(만을 감쌈)
+                float y = 4f + Mathf.Max(hill, spur) + 2.5f * Fbm(x / 60f, z / 60f, d.seed + 10, 3);
+                float camp = Gauss(x, z, 0.28f * S, 0.16f * S, 0.26f * S);
+                float flat = 6f + 0.6f * Fbm(x / 80f, z / 80f, d.seed + 14, 2);
+                y = Mathf.Lerp(y, Mathf.Min(y, flat) + Mathf.Max(0f, y - flat) * 0.25f, SmoothStep(0.25f, 0.65f, camp));
+                return Mathf.Lerp(y, Terrace(y, 2f), SmoothStep(0.35f, 0.7f, camp) * 0.6f);
             }
         }
         return 5f;

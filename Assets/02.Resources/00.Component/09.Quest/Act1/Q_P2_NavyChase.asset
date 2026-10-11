@@ -1,0 +1,97 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_P2_NavyChase
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: P-2
+  act: "\uD504\uB864\uB85C\uADF8"
+  title: "\uAD00\uAD70\uC758 \uC624\uC778 \uCD94\uACA9"
+  giver: 
+  summary: "\uC65C\uAD6C\uC640 \uC2F8\uC6B4 \uD61C\uC758 \uBC30\uB97C \uAD00\uAD70\uC774
+    \uD574\uC801\uC120\uC73C\uB85C \uC624\uC778\uD574 \uCD94\uACA9\uD55C\uB2E4. \uD604\uC0C1\uAE08
+    \uD29C\uD1A0\uB9AC\uC5BC."
+  onStart:
+  - type: 1
+    text: 
+    faction: 1
+    value: 1
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  introDialogue:
+  - speaker: "\uAD00\uAD70"
+    text: "\uAC70\uAE30 \uD574\uC801\uC120\uC740 \uB3DB\uC744 \uB0B4\uB9AC\uACE0
+      \uBA48\uCDB0\uB77C!"
+  - speaker: "\uD61C"
+    text: "\uD574\uC801\uC774\uB77C\uB2C8\u2026 \uC65C\uAD6C\uC640 \uD55C\uD328\uB85C
+      \uBCF4\uB294\uAD6C\uB098."
+  - speaker: "\uC548\uB0B4"
+    text: "\uAD00\uAD70 \uD604\uC0C1\uAE08\uC774 \uC0DD\uACBC\uC2B5\uB2C8\uB2E4.
+      \uD654\uBA74 \uC544\uB798 \uD22C\uAD6C \uC544\uC774\uCF58\uC774 \uD604\uC0C1\uAE08
+      \uB2E8\uACC4\uC774\uBA70, 1\uB2E8\uACC4\uBD80\uD130 \uADF8 \uC9C4\uC601\uC774
+      \uACF5\uACA9\uD569\uB2C8\uB2E4."
+  objectives:
+  - type: 1
+    description: "\uCD94\uACA9\uD574 \uC624\uB294 \uAD00\uAD70 \uD310\uC625\uC120
+      \uACA9\uCE68"
+    targetId: 
+    faction: 1
+    count: 2
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates:
+    - panok_navy
+    keepAlive: 2
+    spawnDistance: 420
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete:
+  - type: 1
+    text: 
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  - type: 0
+    text: "\uAD00\uAD70\uC758 \uCD94\uACA9\uC774 \uBA4E\uC5C8\uC2B5\uB2C8\uB2E4 \u2014
+      \uD574\uC6D4\uB3C4\uB85C \uAC00\uC2ED\uC2DC\uC624"
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  outroDialogue:
+  - speaker: "\uD61C"
+    text: "\u2026\uC219\uBD80\uB2D8\uAED8 \uAC00\uC11C \uC774 \uC77C\uC744 \uB9D0\uC500\uB4DC\uB824\uC57C\uACA0\uB2E4.
+      \uD574\uC6D4\uB3C4\uB85C \uAC00\uC790."
+  next: {fileID: 11400000, guid: e5212034262fba049b47007f7c84caa1, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

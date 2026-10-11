@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_P1_WokouRaid
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: P-1
+  act: "\uD504\uB864\uB85C\uADF8"
+  title: "\uC65C\uAD6C \uC2B5\uACA9"
+  giver: 
+  summary: "\uBC14\uB2E4\uC5D0\uC11C \uC65C\uAD6C \uBC30\uC758 \uC2B5\uACA9\uC744
+    \uBC1B\uB294\uB2E4. \uD574\uC0C1 \uC804\uD22C \uD29C\uD1A0\uB9AC\uC5BC."
+  onStart: []
+  introDialogue:
+  - speaker: "\uC120\uC6D0"
+    text: "\uC544\uC528, \uC65C\uAD6C \uBC30\uC785\uB2C8\uB2E4! \uC774\uCABD\uC73C\uB85C
+      \uACE7\uC7A5 \uC635\uB2C8\uB2E4!"
+  - speaker: "\uD61C"
+    text: "\uD53C\uD560 \uC218 \uC5C6\uB2E4\uBA74 \uB9DE\uC120\uB2E4. \uD3EC\uB97C
+      \uC900\uBE44\uD558\uB77C."
+  - speaker: "\uC548\uB0B4"
+    text: "\uB9C8\uC6B0\uC2A4 \uC624\uB978\uCABD \uBC84\uD2BC\uC73C\uB85C \uACA8\uB204\uACE0
+      \uC67C\uCABD \uBC84\uD2BC\uC73C\uB85C \uC3E9\uB2C8\uB2E4. \uBC30 \uC606\uAD6C\uB9AC(\uD604\uCE21)\uAC00
+      \uC801\uC744 \uD5A5\uD574\uC57C \uD3EC\uAC00 \uB098\uAC11\uB2C8\uB2E4."
+  objectives:
+  - type: 1
+    description: "\uC2B5\uACA9\uD574 \uC628 \uC65C\uAD6C \uBC30 \uACA9\uCE68"
+    targetId: 
+    faction: 3
+    count: 2
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates:
+    - seki_wokou
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete: []
+  outroDialogue:
+  - speaker: "\uC120\uC6D0"
+    text: "\uC65C\uAD6C\uB97C \uBB3C\uB9AC\uCCE4\uC2B5\uB2C8\uB2E4! \u2026\uC544\uC528,
+      \uC800\uAE30 \uD310\uC625\uC120\uC774 \uB2E4\uAC00\uC635\uB2C8\uB2E4. \uAD00\uAD70\uC785\uB2C8\uB2E4!"
+  next: {fileID: 11400000, guid: b21c00cdda7e70d42af98f7d54d2a8d0, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

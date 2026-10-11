@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_3-1_ExileWatch
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 3-1
+  act: "3\uB9C9"
+  title: "\uC720\uBC30 \uC8C4\uC778 \uAC10\uC2DC"
+  giver: "\uB9DD\uC6B4\uB3C4 \uAD00\uC544"
+  summary: "\uB9DD\uC6B4\uB3C4 \uAD00\uC544\uC5D0\uC11C \uC720\uBC30 \uC8C4\uC778\uC744
+    \uAD00\uB9AC\uD558\uB294 \uC77C\uC744 \uBC1B\uB294\uB2E4."
+  onStart: []
+  introDialogue: []
+  objectives:
+  - type: 2
+    description: "\uB9DD\uC6B4\uB3C4\uB85C \uAC00\uAE30"
+    targetId: "\uB9DD\uC6B4\uB3C4_\uC120\uCC29\uC7A5"
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 0
+    description: "\uB9DD\uC6B4\uB3C4 \uAD00\uC544\uC758 \uAD00\uB9AC \uB9CC\uB098\uAE30"
+    targetId: clerk_mangun
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uAD00\uB9AC"
+      text: "\uADF8\uB300\uAC00 \uC0C8\uB85C \uC628 \uC0AC\uB78C\uC774\uC624? \uC77C\uC740
+        \uAC04\uB2E8\uD558\uC624."
+    - speaker: "\uAD00\uB9AC"
+      text: "\uC774 \uC12C\uC5D0 \uC720\uBC30 \uC8C4\uC778\uC774 \uD558\uB098 \uC788\uC18C.
+        \uD55C\uC724\uACB8, \uC120\uC655 \uB54C \uB3C4\uC2B9\uC9C0\uB97C \uC9C0\uB0B8
+        \uC790\uC694."
+    - speaker: "\uAD00\uB9AC"
+      text: "\uC12C\uC744 \uBC97\uC5B4\uB098\uC9C0 \uC54A\uB294\uC9C0, \uB204\uAD6C\uC640
+        \uC11C\uCC30\uC744 \uC8FC\uACE0\uBC1B\uB294\uC9C0 \uC0B4\uD53C\uC2DC\uC624.
+        \uB299\uC740\uC774\uB77C \uB9D0\uC37D\uC740 \uC5C6\uC744 \uAC8C\uC694."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: 8938a7258977a834cb77f8ae56622643, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

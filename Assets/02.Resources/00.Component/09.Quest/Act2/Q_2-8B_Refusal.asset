@@ -1,0 +1,107 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_2-8B_Refusal
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 2-8B
+  act: "2\uB9C9"
+  title: "\uBA85\uB839 \uBD88\uBCF5"
+  giver: "\uC219\uBD80"
+  summary: "\uBD84\uAE30 \u2460 \uC601\uC8FC\uB97C \uC8FD\uC774\uC9C0 \uC54A\uB294\uB2E4
+    \u2014 \uD574\uC6D4\uB3C4 \uAD00\uAD70 \uC801\uB300, \uC219\uBD80\uC758 \uBC00\uC11C\uB85C
+    \uB9DD\uC6B4\uB3C4 \uD56D\uB85C \uC548\uB0B4."
+  onStart:
+  - type: 1
+    text: 
+    faction: 1
+    value: 2
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  - type: 0
+    text: "\uD604\uAC10\uC758 \uBA85\uC744 \uAC70\uC2AC\uB800\uC2B5\uB2C8\uB2E4 \u2014
+      \uAD00\uAD70\uC774 \uD61C\uB97C \uCAD3\uC2B5\uB2C8\uB2E4"
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  - type: 5
+    text: sukbu_servant
+    faction: 1
+    value: 1
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  introDialogue:
+  - speaker: "\uD61C"
+    text: "\uC99D\uAC70\uB97C \uC954 \uC0AC\uB78C\uC744 \uC8FD\uC77C \uC218\uB294
+      \uC5C6\uB2E4. \uD604\uAC10\uC774 \uBB34\uC5C7\uC744 \uC228\uAE30\uB294\uC9C0
+      \uC54C\uC544\uB0B4\uC57C \uD574."
+  objectives:
+  - type: 0
+    description: "\uC120\uCC29\uC7A5\uC758 \uC219\uBD80\uB301 \uD558\uC778 \uB9CC\uB098\uAE30"
+    targetId: sukbu_servant
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uD558\uC778"
+      text: "\uC544\uC528, \uB098\uB9AC\uAED8\uC11C \uBCF4\uB0B4\uC168\uC2B5\uB2C8\uB2E4.
+        \uD574\uC6D4\uB3C4\uB85C\uB294 \uB3CC\uC544\uC624\uC9C0 \uB9C8\uC2DC\uB78D\uB2C8\uB2E4."
+    - speaker: "\uD558\uC778"
+      text: "\uB9DD\uC6B4\uB3C4\uB85C \uAC00\uC2DC\uB78D\uB2C8\uB2E4. \uADF8\uACF3
+        \uAD00\uC544\uC5D0 \uB9D0\uC744 \uB123\uC5B4 \uB450\uC168\uB2E4\uACE0\uC694."
+    - speaker: "\uD61C"
+      text: "\uC219\uBD80\uB2D8\uC774\u2026 \uB0B4\uAC00 \uBA85\uC744 \uAC70\uC2A4\uB978
+        \uAC78 \uC5B4\uB5BB\uAC8C \uBC8C\uC368 \uC544\uC2DC\uACE0?"
+    - speaker: "\uD558\uC778"
+      text: "\uB098\uB9AC\uB294 \uB298 \uC544\uC528\uB97C \uC9C0\uCF1C\uBCF4\uACE0
+        \uACC4\uC2ED\uB2C8\uB2E4."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete:
+  - type: 5
+    text: sukbu_servant
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: cbd94592700c1ab43a14cfebda913d5a, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

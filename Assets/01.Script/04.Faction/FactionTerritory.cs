@@ -94,7 +94,7 @@ public class FactionTerritory : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = faction == Faction.Japanese ? new Color(1f, 0.3f, 0.2f, 0.8f) : new Color(0.3f, 0.6f, 1f, 0.8f);
+        Gizmos.color = faction == Faction.Japanese ? new Color(1f, 0.3f, 0.2f, 0.8f) : faction == Faction.Wokou ? new Color(0.65f, 0.3f, 0.85f, 0.8f) : new Color(0.3f, 0.6f, 1f, 0.8f);
         DrawCircle(innerRadius); DrawCircle(outerRadius);
     }
 

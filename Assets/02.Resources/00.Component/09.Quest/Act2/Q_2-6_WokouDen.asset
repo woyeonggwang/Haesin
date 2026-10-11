@@ -1,0 +1,209 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_2-6_WokouDen
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 2-6
+  act: "2\uB9C9"
+  title: "\uC65C\uAD6C\uC758 \uC18C\uAD74"
+  giver: "\uC601\uC8FC \uAD6C\uB85C\uC138 \uB9C8\uC0AC\uD1A0\uD0A4"
+  summary: "[\uD574\uC804+\uC0C1\uB959] \uAC00\uC2E0\uC744 \uC2EC\uBB38\uD574 \uC54C\uC544\uB0B8
+    \uBB34\uC778\uB3C4\uC758 \uC65C\uAD6C \uBCF8\uAC70\uC9C0\uB97C \uC601\uC8FC\uC640
+    \uD568\uAED8 \uAE09\uC2B5\uD55C\uB2E4. \uC0C1\uB959\uD574 \uB450\uBAA9\uC744
+    \uC0AC\uB85C\uC7A1\uB294\uB2E4."
+  onStart: []
+  introDialogue: []
+  objectives:
+  - type: 0
+    description: "\uC601\uC8FC\uC640 \uCD9C\uC815 \uC774\uC57C\uAE30\uD558\uAE30"
+    targetId: kurose
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uAC00\uC2E0\uC774 \uC785\uC744 \uC5F4\uC5C8\uC18C. \uB0A8\uC11C\uCABD
+        \uBB34\uC778\uB3C4\uC5D0 \uC65C\uAD6C \uC18C\uAD74\uC774 \uC788\uB2E4 \uD558\uC624."
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uB0B4 \uC218\uAD70\uC774 \uC55E\uC7A5\uC11C\uACA0\uC18C. \uADF8\uB300\uB294
+        \uBC14\uB2E4\uC758 \uBC30\uB4E4\uC744 \uC815\uB9AC\uD558\uACE0 \uC12C\uC5D0
+        \uC62C\uB77C \uB450\uBAA9\uC744 \uC7A1\uC544 \uC8FC\uC2DC\uC624."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 1
+    description: "\uC65C\uAD6C\uC12C \uC55E\uBC14\uB2E4\uC758 \uC65C\uAD6C \uBC30
+      \uACA9\uCE68 (\uAD6C\uB85C\uC138 \uC218\uAD70\uACFC \uD568\uAED8)"
+    targetId: 
+    faction: 3
+    count: 4
+    radius: 0
+    onBegin:
+    - type: 0
+      text: "\uAD6C\uB85C\uC138 \uC218\uAD70\uC774 \uC65C\uAD6C\uC12C\uC73C\uB85C
+        \uD5A5\uD569\uB2C8\uB2E4"
+      faction: 1
+      value: 0
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    - type: 2
+      text: 
+      faction: 1
+      value: 2
+      template: anteck
+      distance: 260
+      marker: "\uC65C\uAD6C\uC12C_\uC55E\uBC14\uB2E4"
+      ignoreTerritory: 1
+      factionOverride: -1
+      lines: []
+    onEnd: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates:
+    - seki_wokou
+    - anteck_wokou
+    keepAlive: 2
+    spawnDistance: 150
+    marker: "\uC65C\uAD6C\uC12C_\uC55E\uBC14\uB2E4"
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 2
+    description: "\uC65C\uAD6C\uC12C\uC5D0 \uC0C1\uB959\uD558\uAE30 (E 3\uCD08)"
+    targetId: "\uC65C\uAD6C\uC12C_\uC120\uCC29\uC7A5"
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 7
+    description: "\uC65C\uAD6C \uB450\uBAA9 \uC81C\uC555"
+    targetId: wokou_boss
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd:
+    - type: 5
+      text: wokou_boss
+      faction: 1
+      value: 0
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    - type: 5
+      text: kurose_den
+      faction: 1
+      value: 1
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    - type: 0
+      text: "\uC65C\uAD6C \uB450\uBAA9\uC744 \uC0AC\uB85C\uC7A1\uC558\uC2B5\uB2C8\uB2E4"
+      faction: 1
+      value: 0
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 0
+    description: "\uC18C\uAD74\uC5D0 \uC624\uB978 \uC601\uC8FC\uC640 \uC774\uC57C\uAE30\uD558\uAE30"
+    targetId: kurose_den
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uD574\uB0C8\uAD6C\uB824. \uB188\uC744 \uC0B0 \uCC44\uB85C \uC7A1\uC558\uC73C\uB2C8
+        \uD560 \uB9D0\uC774 \uB9CE\uC744 \uAC83\uC774\uC624."
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\u2026\uB0B4 \uC544\uB0B4\uC640 \uC5B4\uB9B0 \uC544\uB4E4\uB3C4 \uC65C\uAD6C
+        \uC190\uC5D0 \uC783\uC5C8\uC18C. \uADF8\uB0A0 \uC774\uD6C4 \uBC14\uB2E4\uB9CC
+        \uBCF4\uBA74 \uCE7C\uC744 \uC950\uC5C8\uC9C0."
+    - speaker: "\uD61C"
+      text: "\uADF8\uB798\uC11C \uADF8\uD1A0\uB85D \uC65C\uAD6C\uB97C \uCAD3\uC73C\uC168\uAD70\uC694."
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uADF8\uB300\uAC00 \uC870\uC120 \uC0AC\uB78C\uC774\uB77C \uC758\uC2EC\uD588\uB358
+        \uAC83\uC744 \uC6A9\uC11C\uD558\uC2DC\uC624. \uC774\uC81C \uADF8\uB300\uB294
+        \uB0B4 \uC190\uB2D8\uC774\uC624."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: dbb032ec717d84a48838eddb08aabb7d, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

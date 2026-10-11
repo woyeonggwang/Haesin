@@ -1,0 +1,177 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_4-2_EnterPalace
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 4-2
+  act: "4\uB9C9"
+  title: "\uC785\uAD90"
+  giver: "\uAD8C\uC2DC\uD5CC"
+  summary: "\uBCC4\uAC10\uC73C\uB85C \uC704\uC7A5\uD574 \uAD81\uC5D0 \uB4E4\uC5B4\uAC04\uB2E4.
+    \uC655\uC740 \uB9CC\uB098\uC9C0 \uBABB\uD55C\uB2E4."
+  onStart:
+  - type: 5
+    text: palace_day
+    faction: 1
+    value: 1
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  introDialogue: []
+  objectives:
+  - type: 0
+    description: "\uAD8C\uC2DC\uD5CC\uC5D0\uAC8C\uC11C \uACC4\uD68D \uB4E3\uAE30"
+    targetId: gwon_hanyang
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uAD8C\uC2DC\uD5CC"
+      text: "\uAD81\uC5D0 \uB4E4\uC5B4\uAC00 \uBCF4\uC2DC\uC624. \uBCC4\uAC10 \uCC28\uB9BC\uC774\uBA74
+        \uC544\uBB34\uB3C4 \uB208\uC5EC\uACA8\uBCF4\uC9C0 \uC54A\uC744 \uAC8C\uC694."
+    - speaker: "\uAD8C\uC2DC\uD5CC"
+      text: "\uC655\uC758 \uC5BC\uAD74\uC744 \uC9C1\uC811 \uBCF4\uBA74 \uB9C8\uC74C\uC774
+        \uAD73\uC5B4\uC9C8 \uAC83\uC774\uC624. \uAD11\uD654\uBB38\uC73C\uB85C \uAC00\uC2DC\uC624."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 2
+    description: "\uAD11\uD654\uBB38 \uC55E\uC73C\uB85C \uAC78\uC5B4\uAC00\uAE30"
+    targetId: "\uAD11\uD654\uBB38_\uC55E"
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd:
+    - type: 6
+      text: "\uADFC\uC815\uC804_\uB9C8\uB2F9"
+      faction: 1
+      value: 0
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    - type: 0
+      text: "\uBCC4\uAC10 \uCC28\uB9BC\uC73C\uB85C \uAD81\uC5D0 \uB4E4\uC5B4\uC130\uC2B5\uB2C8\uB2E4"
+      faction: 1
+      value: 0
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 0
+    description: "\uADFC\uC815\uC804 \uB9C8\uB2F9\uC758 \uB0B4\uAD00\uC5D0\uAC8C
+      \uB9D0 \uAC78\uAE30"
+    targetId: naegwan
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uB0B4\uAD00"
+      text: "\uC0C8\uB85C \uB4E4\uC5B4\uC628 \uBCC4\uAC10\uC778\uAC00? \uC624\uB298
+        \uC804\uD558\uAED8\uC11C\uB294 \uC544\uBB34\uB3C4 \uB4E4\uC774\uC9C0 \uB9D0\uB77C
+        \uD558\uC168\uB124."
+    - speaker: "\uB0B4\uAD00"
+      text: "\uAC15\uB155\uC804 \uADFC\uCC98\uC5D4 \uC5BC\uC52C\uB3C4 \uD558\uC9C0
+        \uB9D0\uAC8C."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 0
+    description: "\uD589\uCC28 \uC911\uC778 \uB300\uBE44\uC5D0\uAC8C \uACE0\uAC1C
+      \uC219\uC774\uAE30"
+    targetId: daebi
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uD64D \uB300\uBE44"
+      text: "\uBA48\uCD94\uAC70\uB77C. \uACE0\uAC1C\uB97C \uB4E4\uC5B4 \uBCF4\uC544\uB77C."
+    - speaker: "\uD64D \uB300\uBE44"
+      text: "\u2026\uCC98\uC74C \uBCF4\uB294 \uC5BC\uAD74\uC774\uAD6C\uB098. \uBCC4\uAC10
+        \uC8FC\uC81C\uC5D0 \uB208\uBE5B\uC774 \uACF1\uAD6C\uB098."
+    - speaker: "\uD61C"
+      text: "\uD669\uACF5\uD558\uC635\uB2C8\uB2E4, \uB9C8\uB9C8."
+    - speaker: "\uD64D \uB300\uBE44"
+      text: "\uAD81\uC5D0\uC120 \uB208\uC5D0 \uB744\uC9C0 \uC54A\uB294 \uAC83\uC774
+        \uC624\uB798 \uC0AC\uB294 \uAE38\uC774\uB2C8\uB77C. \uBB3C\uB7EC\uAC00\uAC70\uB77C."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete:
+  - type: 5
+    text: palace_day
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: 7d2705ac2464af347993e83e26c8cab2, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

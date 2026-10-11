@@ -19,6 +19,8 @@ public class SwordCombatant : MonoBehaviour
     [Header("진영")]
     [Tooltip("같은 팀끼리는 맞지 않는다. 0 = 플레이어, 1 = 적.")] public int team = 0;
     public Transform target;
+    [Tooltip("싸우지 않는 중(경비·순찰하는 병사 — SoldierAI 가 정함). 플레이어 자동 칼 뽑기·전투 판정에서 빠지고, 표적은 덤비는 적을 먼저 고름. 맞으면 덤빈다(2026-10-06).")]
+    public bool calm;
 
     [Header("공격 데이터")]
     public AttackData[] combo = new AttackData[] {
@@ -84,6 +86,8 @@ public class SwordCombatant : MonoBehaviour
     /// <summary>판정 결과 알림 (문자열: 튕겨내기/막기/피격/회피/결정타). (누가, 무엇을)</summary>
     public System.Action<SwordCombatant, string> OnCombatEvent;
     public System.Action<SwordCombatant> OnDeath;
+    /// <summary>공격 판정 순간(active 시작) — 표적이 아닌 것(마을 사람 등)도 맞았는지 따로 보게(2026-10-05, Villager).</summary>
+    public static System.Action<SwordCombatant, AttackData> OnStrike;
 
     // 내부
     AttackData _attack; AttackData[] _chain; int _comboIndex = -1; float _stateTime; bool _hitDone; bool _lungeDone;
@@ -316,6 +320,7 @@ public class SwordCombatant : MonoBehaviour
 
     void ResolveHit(AttackData a)
     {
+        if (OnStrike != null) OnStrike(this, a);
         if (target == null) return;
         var other = target.GetComponent<SwordCombatant>();
         if (other == null || other.team == team) return;

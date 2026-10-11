@@ -1,0 +1,180 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_2-8A_Assassination
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 2-8A
+  act: "2\uB9C9"
+  title: "\uC601\uC8FC \uC554\uC0B4"
+  giver: "\uD604\uAC10 \uC870\uBA85\uAD6C"
+  summary: "\uBD84\uAE30 \u2460 \uC601\uC8FC\uB97C \uC8FD\uC778\uB2E4 \u2014 \uAD6C\uB85C\uC138\uC9C0\uB9C8
+    \uC218\uBC30\uB839, \uD604\uAC10\uC758 \uCD94\uCC9C\uC7A5\uC73C\uB85C \uB9DD\uC6B4\uB3C4
+    \uAD00\uC544\uB85C."
+  onStart:
+  - type: 5
+    text: kurose_castle
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  - type: 5
+    text: kurose_combat
+    faction: 1
+    value: 1
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  introDialogue:
+  - speaker: "\uD61C"
+    text: "\u2026\uBA85\uC744 \uBC1B\uC558\uC73C\uB2C8 \uB530\uB978\uB2E4. \uBBF8\uC548\uD558\uC624,
+      \uC601\uC8FC."
+  objectives:
+  - type: 7
+    description: "\uC131\uC73C\uB85C \uC62C\uB77C\uAC00 \uC601\uC8FC \uAD6C\uB85C\uC138
+      \uCC98\uCE58"
+    targetId: kurose_combat
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin:
+    - type: 7
+      text: kurose_combat
+      faction: 1
+      value: 0
+      template: 
+      distance: 8
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    onEnd:
+    - type: 1
+      text: 
+      faction: 2
+      value: 5
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    - type: 0
+      text: "\uAD6C\uB85C\uC138\uC9C0\uB9C8\uC5D0 \uC218\uBC30\uB839\uC774 \uB0B4\uB824\uC84C\uC2B5\uB2C8\uB2E4
+        \u2014 \uC77C\uBCF8\uAD70\uC774 \uB300\uAC70 \uCD9C\uACA9\uD569\uB2C8\uB2E4"
+      faction: 1
+      value: 0
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    - type: 8
+      text: 
+      faction: 1
+      value: 0
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines:
+      - speaker: "\uAD6C\uB85C\uC138"
+        text: "\uC870\uC120\u2026 \uC0AC\uB78C\uC744\u2026 \uBBFF\uC740\u2026 \uB0B4\uAC00\u2026"
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 2
+    description: "\uD574\uC6D4\uB3C4\uB85C \uB3CC\uC544\uAC00\uAE30"
+    targetId: "\uD574\uC6D4\uB3C4_\uC120\uCC29\uC7A5"
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 0
+    description: "\uD574\uC6D4\uB3C4 \uAD00\uC544\uC758 \uD604\uAC10\uC5D0\uAC8C
+      \uC54C\uB9AC\uAE30"
+    targetId: hyeongam
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uD604\uAC10 \uC870\uBA85\uAD6C"
+      text: "\uD574\uB0C8\uAD6C\uB824. \uC774\uC81C \uC77C\uBCF8 \uB188\uB4E4\uC774
+        \uB4E4\uACE0 \uC628 \uC99D\uAC70 \uB530\uC704\uB294 \uC544\uBB34\uB3C4 \uBBFF\uC9C0
+        \uC54A\uC744 \uAC8C\uC694."
+    - speaker: "\uD604\uAC10 \uC870\uBA85\uAD6C"
+      text: "\uC57D\uC18D\uD55C \uAC12\uC774\uC624. \uADF8\uB9AC\uACE0 \uC774\uAC74
+        \uCD94\uCC9C\uC7A5\uC774\uC624. \uB9DD\uC6B4\uB3C4 \uAD00\uC544\uC5D0\uC11C
+        \uC720\uBC30 \uC8C4\uC778\uC744 \uC9C0\uD0A4\uB294 \uC77C\uC744 \uB9E1\uC73C\uC2DC\uC624."
+    - speaker: "\uD61C"
+      text: "(\u2026\uB098\uB294 \uBB34\uC5C7\uC744 \uD55C \uAC83\uC778\uAC00.)"
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete:
+  - type: 4
+    text: 
+    faction: 1
+    value: 500
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: cbd94592700c1ab43a14cfebda913d5a, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

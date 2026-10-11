@@ -4,7 +4,8 @@ using UnityEngine;
 
 /// <summary>
 /// 관군 판옥선 포격. NavyPanokAI 가 Broadside(교전) 상태이고 표적 쪽 현이 정렬되면
-/// 그 현의 대포들을 일제사한다.
+/// 그 현의 대포들을 일제사한다. NavyPanokAI 가 꺼진 선착장 배(HarborPatrol)는 HarborPatrol 이 고른 표적을 쏜다
+/// (2026-10-05 사용자 지시 "선착장 근처 배가 대포를 안 쏨" — 예전엔 선착장 배의 포격을 끔).
 ///
 /// 표적이 플레이어로 고정되어 있지 않다는 점만 빼면 계산은 다른 배들과 같은 포물선 탄도다.
 /// 포탄에는 이 배의 진영(Navy)을 찍어 보내므로, 같은 관군 배에는 맞아도 터지지 않는다.
@@ -52,12 +53,14 @@ public class NavyCannonControl : MonoBehaviour
     public int volleysFired;
 
     private NavyPanokAI _ai;
+    private HarborPatrol _harbor;
     private ShipFaction _self;
     private float _nextVolleyTime;
 
     void Start()
     {
         _ai = GetComponent<NavyPanokAI>();
+        _harbor = GetComponent<HarborPatrol>();
         _self = GetComponent<ShipFaction>();
 
         if (portPoints == null || portPoints.Length == 0)
@@ -85,13 +88,26 @@ public class NavyCannonControl : MonoBehaviour
 
     void Update()
     {
-        if (_ai == null || cannonBallPrefab == null) return;
-        if (_ai.state != NavyPanokAI.State.Broadside) return;
+        if (cannonBallPrefab == null) return;
 
-        ShipFaction target = _ai.Target;
-        if (target == null || !target.isActiveAndEnabled) return;
-        if (_ai.distanceToTarget > fireRange) return;
+        ShipFaction target;
+        if (_ai != null && _ai.enabled)
+        {
+            if (_ai.state != NavyPanokAI.State.Broadside) return;
+            target = _ai.Target;
+            if (target == null || !target.isActiveAndEnabled) return;
+            if (_ai.distanceToTarget > fireRange) return;
+        }
+        else if (_harbor != null && _harbor.isActiveAndEnabled)
+        {
+            target = _harbor.Target;
+            if (target == null || !target.isActiveAndEnabled) return;
+            Vector3 d = target.AimPosition - transform.position; d.y = 0f;
+            if (d.magnitude > fireRange) return;
+        }
+        else return;
         if (Time.time < _nextVolleyTime) return;
+        if (!ShipCrew.CanFireCannons(this)) return;   // 선원이 모두 쓰러지면 대포를 못 쏨(사용자 지시)
 
         Vector3 to = target.AimPosition - transform.position;
         to.y = 0f;

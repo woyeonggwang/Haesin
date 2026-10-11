@@ -1,0 +1,103 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_3-5_Trial
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 3-5
+  act: "3\uB9C9"
+  title: "\uBB34\uB825 \uC2DC\uD5D8"
+  giver: "\uD55C\uC724\uACB8(\uCCAD\uC7AC)"
+  summary: "\uADFC\uD574\uC5D0 \uCD9C\uBAB0\uD558\uB294 \uD574\uC801 \uB450\uBAA9\uC120\uACFC
+    \uC2F8\uC6B4\uB2E4."
+  onStart: []
+  introDialogue: []
+  objectives:
+  - type: 0
+    description: "\uD55C\uC724\uACB8\uACFC \uC774\uC57C\uAE30\uD558\uAE30"
+    targetId: han_yungyeom
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\uADF8\uB300 \uC19C\uC528\uB97C \uD55C \uBC88 \uB354 \uBCF4\uACE0 \uC2F6\uC18C.
+        \uADFC\uD574\uC5D0 \uD574\uC801 \uB450\uBAA9\uC120\uC774 \uB098\uD0C0\uB0AC\uB2E4
+        \uD558\uC624."
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\uADF8 \uBC30\uB97C \uAC00\uB77C\uC549\uD790 \uC218 \uC788\uB2E4\uBA74\u2026
+        \uADF8\uB300\uC5D0\uAC8C \uB9E1\uAE38 \uC77C\uC774 \uC788\uC18C."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 1
+    description: "\uD574\uC801 \uB450\uBAA9\uC120\uACFC \uD638\uC704\uC120 \uACA9\uCE68"
+    targetId: 
+    faction: 3
+    count: 3
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates:
+    - anteck_wokou
+    - seki_wokou
+    - seki_wokou
+    keepAlive: 3
+    spawnDistance: 420
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 0
+    description: "\uD55C\uC724\uACB8\uC5D0\uAC8C \uB3CC\uC544\uAC00\uAE30"
+    targetId: han_yungyeom
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\uB410\uC18C. \uC774\uC81C \uD655\uC2E0\uC774 \uC11C\uB294\uAD6C\uB824."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: bdc7b64d36967544d8b12255821266b3, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

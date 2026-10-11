@@ -1,0 +1,171 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_2-5_SilverRetainer
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 2-5
+  act: "2\uB9C9"
+  title: "\uC740\uC744 \uBC1B\uB294 \uAC00\uC2E0"
+  giver: "\uC601\uC8FC \uAD6C\uB85C\uC138 \uB9C8\uC0AC\uD1A0\uD0A4"
+  summary: "[\uBBF8\uD589\xB7\uC7A0\uC785] \uC65C\uAD6C\uC5D0\uAC8C \uC815\uBCF4\uB97C
+    \uD758\uB9AC\uB294 \uAC00\uC2E0\uC744 \uCC3E\uC544\uB0B8\uB2E4. \uC815\uCCB4
+    \uBAA8\uB97C \uC870\uC120\uC778\uC5D0\uAC8C\uC11C \uC740\uC744 \uBC1B\uB294 \uC7A5\uBA74\uC744
+    \uBAA9\uACA9\uD55C\uB2E4."
+  onStart:
+  - type: 5
+    text: kurose_harbor
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  - type: 5
+    text: kurose_castle
+    faction: 1
+    value: 1
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  introDialogue: []
+  objectives:
+  - type: 0
+    description: "\uC131\uC758 \uC601\uC8FC\uC5D0\uAC8C \uAC00\uAE30"
+    targetId: kurose
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uC65C\uAD6C\uAC00 \uB0B4 \uC218\uC1A1\uC120 \uAE38\uC744 \uB108\uBB34
+        \uC798 \uC548\uB2E4. \uB0B4 \uAC00\uC2E0 \uAC00\uC6B4\uB370 \uB204\uAD70\uAC00
+        \uC815\uBCF4\uB97C \uD758\uB9AC\uACE0 \uC788\uC18C."
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uC758\uC2EC \uAC00\uB294 \uC790\uAC00 \uC788\uC18C. \uC131 \uC544\uB798\uB85C
+        \uB0B4\uB824\uAC00\uB294 \uADF8\uC790\uB97C \uB530\uB77C\uAC00 \uBCF4\uC2DC\uC624.
+        \uB4E4\uD0A4\uBA74 \uB05D\uC774\uC624."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 6
+    description: "\uC131 \uC544\uB798 \uAE38\uC5D0\uC11C \uAC00\uC2E0\uC744 \uB4E4\uD0A4\uC9C0
+      \uC54A\uAC8C \uBBF8\uD589"
+    targetId: retainer
+    faction: 3
+    count: 1
+    radius: 45
+    onBegin:
+    - type: 5
+      text: masked_man
+      faction: 1
+      value: 1
+      template: 
+      distance: 400
+      marker: 
+      ignoreTerritory: 0
+      factionOverride: -1
+      lines: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uAC00\uC2E0"
+      text: "\uC57D\uC18D\uD55C \uBB3C\uAC74\uC774\uC624. \uB2E4\uC74C \uC218\uC1A1\uC120\uC740
+        \uC0AC\uD758 \uB4A4 \uBD81\uC11C \uD3EC\uAD6C\uB85C \uB098\uAC00\uC624."
+    - speaker: "\uC815\uCCB4 \uBAA8\uB97C \uC870\uC120\uC778"
+      text: "\uC218\uACE0\uD588\uC18C. \uC740\uC740 \uB298 \uADF8\uB807\uB4EF \uB109\uB109\uD788
+        \uB123\uC5C8\uC18C."
+    - speaker: "\uAC00\uC2E0"
+      text: "\uC870\uC120 \uB098\uB9AC\uB4E4\uC740 \uC190\uC774 \uD06C\uAD6C\uB824."
+    - speaker: "\uD61C"
+      text: "(\uC870\uC120 \uC0AC\uB78C\uC774\u2026 \uC65C\uAD6C\uC5D0\uAC8C \uAE38\uC744
+        \uB300 \uC8FC\uACE0 \uC788\uB2E4\uACE0?)"
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  - type: 0
+    description: "\uC601\uC8FC\uC5D0\uAC8C \uBCF8 \uAC83\uC744 \uC54C\uB9AC\uAE30"
+    targetId: kurose
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uD61C"
+      text: "\uAC00\uC2E0\uC774 \uC815\uCCB4 \uBAA8\uB97C \uC870\uC120\uC778\uC5D0\uAC8C\uC11C
+        \uC740\uC744 \uBC1B\uC558\uC2B5\uB2C8\uB2E4. \uC218\uC1A1\uC120 \uAE38\uC744
+        \uB118\uACA8\uC8FC\uB354\uAD70\uC694."
+    - speaker: "\uAD6C\uB85C\uC138"
+      text: "\uC870\uC120\uC778\uC774\uB77C\u2026 \uADF8\uB300\uAC00 \uC9C1\uC811
+        \uBCF4\uC558\uB2E4\uB2C8 \uBBFF\uACA0\uC18C. \uADF8\uC790\uB294 \uC624\uB298
+        \uBC24 \uC548\uC73C\uB85C \uC7A1\uC544\uB4E4\uC774\uACA0\uC18C."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete:
+  - type: 5
+    text: masked_man
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  - type: 5
+    text: retainer
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: 07f1ce6bd467801489e6882da96d4254, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

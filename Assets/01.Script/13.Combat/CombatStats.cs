@@ -8,6 +8,8 @@ using UnityEngine;
 /// </summary>
 public class CombatStats : MonoBehaviour
 {
+    [Tooltip("시험용 무적(체력만, 2026-10-06 사용자 요청): 켜면 체력이 줄지 않고 결정타로도 죽지 않음. 체간은 그대로 차고 무너짐.")]
+    public bool invulnerableHealth;
     public float maxHealth = 100f;
     public float health = 100f;
     public float maxPosture = 100f;
@@ -47,6 +49,7 @@ public class CombatStats : MonoBehaviour
     public void Damage(float amount)
     {
         if (IsDead || amount <= 0f) return;
+        if (invulnerableHealth) { if (OnDamaged != null) OnDamaged(0f); return; }
         health = Mathf.Max(0f, health - amount);
         if (OnDamaged != null) OnDamaged(amount);
         if (health <= 0f && OnDied != null) OnDied();
@@ -69,5 +72,5 @@ public class CombatStats : MonoBehaviour
     public void EndBroken() { _brokenUntil = -1f; posture = 0f; _lastPostureHitTime = Time.time; }
 
     /// <summary>결정타: 즉사.</summary>
-    public void Deathblow() { health = 0f; if (OnDied != null) OnDied(); }
+    public void Deathblow() { if (invulnerableHealth) return; health = 0f; if (OnDied != null) OnDied(); }
 }

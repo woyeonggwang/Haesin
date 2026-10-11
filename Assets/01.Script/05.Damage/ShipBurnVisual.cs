@@ -25,6 +25,12 @@ public class ShipBurnVisual : MonoBehaviour
         LitDetailOverlay
     }
 
+    [Header("세기")]
+    [Tooltip("타는 효과 전체 세기. 1 = 예전 그대로. 0.6 = 완파 직전에도 예전 60 % 손상 때만큼만 그을리고(그을음·불씨 = 손상도 × 이 값), " +
+             "불 파티클도 크기·방출량을 각각 √0.6(약 0.77) 배 — 사용자 지시 \"최대를 60 % 정도로, 그 밑도 비율대로\"(2026-10-04).")]
+    [Range(0f, 1f)] public float intensity = 0.6f;
+    [SerializeField, HideInInspector] float _appliedFireScale = 1f;   // 이미 파티클에 곱한 배율(복제본이 두 번 줄이지 않게 — 스포너가 켜진 원본을 복제함)
+
     [Header("방식")]
     public Mode mode = Mode.BurnShader;
     [Tooltip("전용 셰이더. 비우면 Haesin/ShipBurn 을 찾는다.")]
@@ -105,7 +111,29 @@ public class ShipBurnVisual : MonoBehaviour
         _health = GetComponent<ShipHealth>();
         if (burnShader == null) burnShader = Shader.Find("Haesin/ShipBurn");
         CollectFires();
+        ScaleFireParticles();
         SetFireCount(0);
+    }
+
+    /// <summary>불 파티클 크기·방출량을 intensity 에 맞춘다(런타임 인스턴스만, 원본 값에서 √intensity 배).</summary>
+    void ScaleFireParticles()
+    {
+        float want = Mathf.Sqrt(Mathf.Clamp01(intensity));
+        if (fireObjects == null || Mathf.Approximately(want, _appliedFireScale) || _appliedFireScale <= 0f) return;
+        float f = want / _appliedFireScale;
+        for (int i = 0; i < fireObjects.Length; i++)
+        {
+            if (fireObjects[i] == null) continue;
+            foreach (var ps in fireObjects[i].GetComponentsInChildren<ParticleSystem>(true))
+            {
+                var main = ps.main;
+                main.startSizeMultiplier *= f;
+                var em = ps.emission;
+                em.rateOverTimeMultiplier *= f;
+                em.rateOverDistanceMultiplier *= f;
+            }
+        }
+        _appliedFireScale = want;
     }
 
     void OnEnable() { if (_health != null) _health.OnStageChanged += OnStageChanged; }
@@ -187,6 +215,8 @@ public class ShipBurnVisual : MonoBehaviour
         foreach (var r in GetComponentsInChildren<Renderer>(true))
         {
             if (r is ParticleSystemRenderer) continue;
+            // 선원 모델(CrewMember 아래 — 사람·무기·화살)과 사람 스킨 메시는 태우지 않는다(2026-10-04, 큐브 선원을 모델로 바꾸며)
+            if (r is SkinnedMeshRenderer || r.GetComponentInParent<CrewMember>(true) != null) continue;
 
             var mats = r.sharedMaterials;
             bool changed = false;
@@ -260,7 +290,7 @@ public class ShipBurnVisual : MonoBehaviour
 
     void ApplyBurn(float t)
     {
-        float k = Mathf.Clamp01(t);
+        float k = Mathf.Clamp01(t) * Mathf.Clamp01(intensity);
         for (int i = 0; i < _instances.Count; i++)
         {
             Material m = _instances[i];
@@ -302,7 +332,7 @@ public class ShipBurnVisual : MonoBehaviour
             if (_usingShader) m.SetColor(IdEmberColor, e);
             else if (m.HasProperty(IdEmissive))
             {
-                float k = Mathf.InverseLerp(0.45f, 1f, burnAmount);
+                float k = Mathf.InverseLerp(0.45f, 1f, burnAmount * Mathf.Clamp01(intensity));
                 m.SetColor(IdEmissive, emberColor * (emberIntensity * k * flicker));
             }
         }

@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_E-1_NewKing
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: E-1
+  act: "\uC5D0\uD544\uB85C\uADF8"
+  title: "\uC0C8 \uC655"
+  giver: "\uBC18\uB780\uD30C"
+  summary: "\uBC18\uB780\uD30C\uAC00 \uB2E4\uB978 \uC885\uCE5C\uC744 \uC655\uC73C\uB85C
+    \uC639\uB9BD\uD55C\uB2E4. \uD604\uC655 \uBB18\uD638\uB294 \uBBFC\uC885."
+  onStart: []
+  introDialogue:
+  - speaker: 
+    text: "\uBC18\uB780\uD30C\uB294 \uC885\uCE5C \uAC00\uC6B4\uB370 \uD55C \uC0AC\uB78C\uC744
+      \uC0C8 \uC655\uC73C\uB85C \uC138\uC6E0\uB2E4."
+  - speaker: 
+    text: "\uC138\uC0C1\uC744 \uB5A0\uB09C \uC655\uC5D0\uAC8C\uB294 \uBBFC\uC885(\u610D\u5B97)\uC774\uB77C\uB294
+      \uBB18\uD638\uAC00 \uC62C\uB824\uC84C\uB2E4."
+  - speaker: "\uD61C"
+    text: "\uB098\uB294 \uC5EC\uC778\uC774\uB77C \uC655\uC774 \uB420 \uC218 \uC5C6\uB2E4.
+      \uADF8\uB7FC \uB098\uB294\u2026 \uBB34\uC5C7\uC744 \uC704\uD574 \uC5EC\uAE30\uAE4C\uC9C0
+      \uC654\uB294\uAC00."
+  objectives:
+  - type: 2
+    description: "\uD55C\uC591\uC744 \uB5A0\uB098 \uBC30\uB85C \uB3CC\uC544\uAC00\uAE30"
+    targetId: "\uD55C\uC591_\uC120\uCC29\uC7A5"
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue: []
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: 51d79bf7b41636e45a7113431b1eacb9, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

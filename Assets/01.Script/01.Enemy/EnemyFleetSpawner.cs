@@ -36,6 +36,20 @@ public class EnemyFleetSpawner : MonoBehaviour
     [Tooltip("시작하자마자 관군 함대를 하나 스폰할지.")]
     public bool spawnNavyOnStart = true;
 
+    [Header("왜구 함대 (2026-10-07)")]
+    [Tooltip("왜구 안택선 원본(씬의 anteck_wokou). 비워두면 왜구는 등장하지 않는다.")]
+    public GameObject wokouAnteckTemplate;
+    [Tooltip("왜구 세키부네 원본(씬의 seki_wokou).")]
+    public GameObject wokouSekiTemplate;
+    [Tooltip("왜구 함대당 안택선 수 (최소~최대).")]
+    public Vector2Int wokouAnteckCount = new Vector2Int(0, 1);
+    [Tooltip("왜구 함대당 세키부네 수 (최소~최대).")]
+    public Vector2Int wokouSekiCount = new Vector2Int(1, 2);
+    [Tooltip("동시에 존재할 수 있는 왜구 함대 수.")]
+    public int maxWokouFleets = 1;
+    [Tooltip("시작하자마자 왜구 함대를 하나 스폰할지.")]
+    public bool spawnWokouOnStart = false;
+
     [Header("상선 호송대")]
     [Tooltip("상선 원본(템플릿). 비워두면 상선은 등장하지 않는다.")]
     public GameObject merchantTemplate;
@@ -75,12 +89,15 @@ public class EnemyFleetSpawner : MonoBehaviour
     public int activeNavyFleetCount;
     [Tooltip("활동 중인 상선 호송대 수.")]
     public int activeMerchantConvoyCount;
+    [Tooltip("활동 중인 왜구 함대 수.")]
+    public int activeWokouFleetCount;
 
     private Transform _player;
     private float _nextCheckTime;
     private readonly List<List<GameObject>> _fleets = new List<List<GameObject>>();
     private readonly List<List<GameObject>> _navyFleets = new List<List<GameObject>>();
     private readonly List<List<GameObject>> _merchantConvoys = new List<List<GameObject>>();
+    private readonly List<List<GameObject>> _wokouFleets = new List<List<GameObject>>();
 
     void Start()
     {
@@ -92,8 +109,11 @@ public class EnemyFleetSpawner : MonoBehaviour
         if (sekiTemplate != null) sekiTemplate.SetActive(false);
         if (navyPanokTemplate != null) navyPanokTemplate.SetActive(false);
         if (merchantTemplate != null) merchantTemplate.SetActive(false);
+        if (wokouAnteckTemplate != null) wokouAnteckTemplate.SetActive(false);
+        if (wokouSekiTemplate != null) wokouSekiTemplate.SetActive(false);
 
         if (spawnOnStart) TrySpawnFleet();
+        if (spawnWokouOnStart) TrySpawnWokouFleet();
         if (spawnNavyOnStart) TrySpawnNavyFleet();
         if (spawnMerchantOnStart) TrySpawnMerchantConvoy();
     }
@@ -107,14 +127,17 @@ public class EnemyFleetSpawner : MonoBehaviour
         CleanupFleets(_fleets);
         CleanupFleets(_navyFleets);
         CleanupFleets(_merchantConvoys);
+        CleanupFleets(_wokouFleets);
 
         if (_fleets.Count < maxFleets) TrySpawnFleet();
         if (_navyFleets.Count < maxNavyFleets) TrySpawnNavyFleet();
         if (_merchantConvoys.Count < maxMerchantConvoys) TrySpawnMerchantConvoy();
+        if (_wokouFleets.Count < maxWokouFleets) TrySpawnWokouFleet();
 
         activeFleetCount = _fleets.Count;
         activeNavyFleetCount = _navyFleets.Count;
         activeMerchantConvoyCount = _merchantConvoys.Count;
+        activeWokouFleetCount = _wokouFleets.Count;
     }
 
 
@@ -260,6 +283,107 @@ public class EnemyFleetSpawner : MonoBehaviour
         activeFleetCount = _fleets.Count;
     }
 
+
+    /// <summary>왜구 함대(세키부네 1~2 + 가끔 안택선). 다른 함대와 같은 규칙(플레이어에서 250~500 m, 남의 영해 밖).</summary>
+    void TrySpawnWokouFleet()
+    {
+        if (_player == null || wokouSekiTemplate == null) return;
+        Vector3 center;
+        if (!PickFleetCenter(fleetSpread, Faction.Wokou, out center)) return;
+        _wokouFleets.Add(SpawnGroup(wokouAnteckTemplate, Random.Range(wokouAnteckCount.x, wokouAnteckCount.y + 1),
+                                    wokouSekiTemplate, Random.Range(wokouSekiCount.x, wokouSekiCount.y + 1), center));
+        activeWokouFleetCount = _wokouFleets.Count;
+    }
+
+    /// <summary>
+    /// 퀘스트용: 원본 배를 플레이어 둘레 distance(m) 링에 count 척 띄운다(진영 영해·안전지대 규칙 그대로). 스포너의 함대 목록에는 넣지 않음 —
+    /// 그래서 900 m 정리 대상이 아니다(퀘스트가 스스로 정리). 템플릿이 꺼져 있어도 됨.
+    /// </summary>
+    public List<GameObject> SpawnForQuest(GameObject template, int count, float distance, float spread)
+    {
+        return SpawnForQuest(template, count, distance, spread, false, null, -1);
+    }
+
+    /// <summary>
+    /// 퀘스트용 배 띄우기(2026-10-09 확장). around 가 있으면 플레이어 대신 그 자리 둘레 distance 에서,
+    /// ignoreTerritory 면 섬 영해 규칙(스폰 금지·밀어내기)을 무시하고 띄운 배에도 ShipFaction.ignoreTerritory 를 켬(남의 영해 안에서도 싸움).
+    /// factionOverride ≥ 0 이면 띄운 배의 진영을 바꿈(예: 상선 원본을 일본 수송선으로). 육지(터레인 −2 m 위)에는 띄우지 않음.
+    /// </summary>
+    public List<GameObject> SpawnForQuest(GameObject template, int count, float distance, float spread, bool ignoreTerritory, Transform around, int factionOverride)
+    {
+        var list = new List<GameObject>();
+        if (template == null || count <= 0) return list;
+        if (_player == null) { var t = GameObject.FindGameObjectWithTag("Player"); if (t != null) _player = t.transform; }
+        if (_player == null && around == null) return list;
+        var tf = template.GetComponent<ShipFaction>();
+        Faction f = factionOverride >= 0 ? (Faction)factionOverride : (tf != null ? tf.faction : Faction.Japanese);
+        Vector3 origin = around != null ? around.position : _player.position;
+        Vector3 center = origin;
+        bool found = false;
+        for (int attempt = 0; attempt < 24 && !found; attempt++)
+        {
+            float a = Random.Range(0f, Mathf.PI * 2f);
+            Vector3 c = origin + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * distance; c.y = 0f;
+            if (BaseSafeZone.Contains(c, spread + safeZoneMargin)) continue;
+            if (!ignoreTerritory && FactionTerritory.SpawnWeight(f, c) <= 0f) continue;
+            if (IsLand(c, -2f)) continue;
+            center = c; found = true;
+        }
+        if (!found)
+        {
+            Vector3 fwd = _player != null ? _player.forward : Vector3.forward; fwd.y = 0f; if (fwd.sqrMagnitude < 0.01f) fwd = Vector3.forward;
+            center = BaseSafeZone.PushOutside(origin + fwd.normalized * distance, safeZoneMargin); center.y = 0f;
+        }
+        for (int i = 0; i < count; i++)
+        {
+            var ship = ignoreTerritory || factionOverride >= 0 ? SpawnQuestShip(template, center, spread, ignoreTerritory, factionOverride) : SpawnShip(template, center, spread);
+            list.Add(ship);
+        }
+        return list;
+    }
+
+    GameObject SpawnQuestShip(GameObject template, Vector3 center, float spread, bool ignoreTerritory, int factionOverride)
+    {
+        Vector3 pos = center;
+        for (int k = 0; k < 8; k++)
+        {
+            Vector2 r = Random.insideUnitCircle * spread;
+            pos = center + new Vector3(r.x, 0f, r.y);
+            if (!IsLand(pos, -2f)) break;
+        }
+        pos = BaseSafeZone.PushOutside(pos, safeZoneMargin);
+        var tf = template.GetComponent<ShipFaction>();
+        if (!ignoreTerritory && tf != null) pos = FactionTerritory.PushOut(tf.faction, pos, 20f);
+        pos.y = 0f;
+        bool was = template.activeSelf;
+        if (was) template.SetActive(false);   // 복제가 꺼진 채 생기게 — 진영을 바꾼 뒤 켬
+        GameObject ship = Instantiate(template, pos, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
+        if (was) template.SetActive(true);
+        var sf = ship.GetComponent<ShipFaction>();
+        if (sf != null) { sf.ignoreTerritory = ignoreTerritory; if (factionOverride >= 0) sf.faction = (Faction)factionOverride; }
+        ship.SetActive(true);
+        return ship;
+    }
+
+    /// <summary>p 의 터레인 높이가 above 보다 높으면(육지·얕은 곳) true.</summary>
+    public static bool IsLand(Vector3 p, float above)
+    {
+        foreach (var t in Terrain.activeTerrains)
+        {
+            var o = t.transform.position; var sz = t.terrainData.size;
+            if (p.x < o.x || p.x > o.x + sz.x || p.z < o.z || p.z > o.z + sz.z) continue;
+            if (t.SampleHeight(p) + o.y > above) return true;
+        }
+        return false;
+    }
+
+    List<GameObject> SpawnGroup(GameObject a, int na, GameObject b, int nb, Vector3 center)
+    {
+        var fleet = new List<GameObject>();
+        if (a != null) for (int i = 0; i < na; i++) fleet.Add(SpawnShip(a, center, fleetSpread * 0.6f));
+        if (b != null) for (int i = 0; i < nb; i++) fleet.Add(SpawnShip(b, center, fleetSpread));
+        return fleet;
+    }
 
     GameObject SpawnShip(GameObject template, Vector3 center, float spread)
     {

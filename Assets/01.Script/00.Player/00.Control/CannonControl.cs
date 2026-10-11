@@ -13,6 +13,8 @@ public class CannonControl : MonoBehaviour
     public float fireCooldown = 4f;
     [Tooltip("남은 쿨타임(초). 읽기 전용.")]
     public float cooldownRemaining;
+    [Tooltip("한 번 쏠 때 포문마다 차례로 쏘는 데 걸리는 전체 시간(초). 0 이면 한꺼번에(예전). 2026-10-06 사용자 지시: 한꺼번에 나가 시끄러움 → 약 1 초에 걸쳐.")]
+    public float volleyDuration = 1f;
     private float _nextFireTime;
     public float maxView;
     public Camera mainCamera;
@@ -33,6 +35,30 @@ public class CannonControl : MonoBehaviour
     [Range(0f, 0.5f)]
     public float sideDeadzone = 0.08f;
     private bool _hasSide = false;
+    private ShipCrew _crew;
+    private bool _crewSearched;
+    private float _noCrewMessageUntil;
+
+    /// <summary>이 배의 선원이 살아 있어 대포를 쏠 수 있는가(ShipCrew 가 없으면 true).</summary>
+    bool CrewAllowsFire()
+    {
+        if (!_crewSearched)
+        {
+            _crewSearched = true;
+            Transform ship = shipTransform != null ? shipTransform : transform;
+            _crew = ship.GetComponentInParent<ShipCrew>();
+            if (_crew == null) { var sf = ship.GetComponentInParent<ShipFaction>(); if (sf != null) _crew = sf.GetComponentInChildren<ShipCrew>(); }
+        }
+        return _crew == null || _crew.HasLivingCrew;
+    }
+
+    void OnGUI()
+    {
+        if (Time.unscaledTime > _noCrewMessageUntil) return;
+        var st = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 22 };
+        st.normal.textColor = new Color(1f, 0.85f, 0.6f);
+        GUI.Label(new Rect(0, Screen.height * 0.62f, Screen.width, 40), "선원이 모두 쓰러져 대포를 쏠 수 없습니다", st);
+    }
 
     private void Start()
     {
@@ -51,7 +77,11 @@ public class CannonControl : MonoBehaviour
         {
             // 예전에는 클릭할 때마다 코루틴이 하나씩 더 돌아서 연타하면 그만큼 계속 발사됐다.
             // 눌린 순간에 다음 발사 가능 시각을 밀어 두면 연타해도 한 번만 나간다.
-            if (Input.GetMouseButtonDown(0) && cooldownRemaining <= 0f)
+            if (Input.GetMouseButtonDown(0) && cooldownRemaining <= 0f && !CrewAllowsFire())
+            {
+                _noCrewMessageUntil = Time.unscaledTime + 2f;   // 선원이 모두 쓰러지면 대포를 못 쏨(사용자 지시)
+            }
+            else if (Input.GetMouseButtonDown(0) && cooldownRemaining <= 0f)
             {
                 _nextFireTime = Time.time + fireCooldown;
                 cooldownRemaining = fireCooldown;
@@ -211,7 +241,9 @@ public class CannonControl : MonoBehaviour
     }
     IEnumerator ShotPlay(int idx)
     {
-        for (int i = 0; i < shotPos[idx].shotPoint.Length; i++)
+        int n = shotPos[idx].shotPoint.Length;
+        float gap = n > 1 ? volleyDuration / (n - 1) : 0f;
+        for (int i = 0; i < n; i++)
         {
             if (onTarget)
             {
@@ -221,6 +253,7 @@ public class CannonControl : MonoBehaviour
             {
                 FireFront(shotPos[idx].shotPoint[i]);
             }
+            if (i < n - 1 && gap > 0f) yield return new WaitForSeconds(gap * Random.Range(0.8f, 1.2f)); // 포문마다 조금씩 어긋나게
         }
         yield return new WaitForSeconds(3f);
         shotCount = 0;

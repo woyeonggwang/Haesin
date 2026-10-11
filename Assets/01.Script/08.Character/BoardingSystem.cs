@@ -16,10 +16,13 @@ public class BoardingSystem : MonoBehaviour
     public Transform cameraTransform;   // Main Camera
     public float holdSeconds = 3f;
     [Tooltip("다시 타려면 캐릭터가 배 중심에서 이 거리(m) 안에 있어야 한다. 선착장 끝에서 정박한 판옥선 중심까지 약 11 m.")] public float boardRange = 25f;
+    [Tooltip("또는 배 선체(충돌체)에서 이 거리(m) 안이면 탈 수 있다(2026-10-06 — 선착장에 붙인 배 옆 어디서나). T 자 정박 때 하차 지점(판자 로컬 x 6)에서 선체까지 약 7.04 m 라 9.")] public float boardHullRange = 9f;
     [Tooltip("하차 시 캐릭터를 세울 오브젝트. 비워두면 자동 생성.")] public OnFootController onFootRoot;
     [Tooltip("하차 중 꺼둘 배 컴포넌트 이름.")] public string[] shipComponentsToDisable = { "CannonControl", "CameraFollow" }; // MoveControl 은 끄지 않고 정박(SetDocked) — 끄면 물 저항이 멈춰 배가 떠내려감
 
     public bool IsOnFoot { get; private set; }
+    /// <summary>지금 E 로 승·하차할 수 있는 자리인지(PalaceGate 가 E 를 양보할 때 씀).</summary>
+    public bool CanAct { get { return _canAct; } }
     float _hold; LandingPoint _nearest; bool _canAct; string _hint = "";
     readonly List<Behaviour> _disabled = new List<Behaviour>();
     // 배 카메라(Main Camera)는 panok/CameraPivot 의 자식이라, 하차 중 PlayerOrbitCamera 가 월드 위치·회전을 덮어쓰면 로컬 자세가 망가진다.
@@ -55,7 +58,7 @@ public class BoardingSystem : MonoBehaviour
         else
         {
             float d = Vector3.Distance(onFootRoot.transform.position, ship.position);
-            if (d <= boardRange) { _canAct = true; _hint = "E 를 " + holdSeconds.ToString("F0") + "초 눌러 승선"; }
+            if (d <= boardRange || HullDistance(onFootRoot.transform.position) <= boardHullRange) { _canAct = true; _hint = "E 를 " + holdSeconds.ToString("F0") + "초 눌러 승선"; }
         }
 
         if (_canAct && Input.GetKey(KeyCode.E))
@@ -110,9 +113,128 @@ public class BoardingSystem : MonoBehaviour
             string n = mb.GetType().Name;
             for (int i = 0; i < shipComponentsToDisable.Length; i++) if (n == shipComponentsToDisable[i]) { mb.enabled = false; _disabled.Add(mb); break; }
         }
+        PlaceShipAtBerth(lp);
         var mc = ship.GetComponent<MoveControl>(); if (mc != null) mc.SetDocked(true);
         onFootRoot.SetYaw(root.eulerAngles.y);
         IsOnFoot = true;
+    }
+
+    /// <summary>
+    /// 하차할 때 배를 선착장 옆에 붙여 둔다(2026-10-06 사용자 지시 "선착장으로 내리면 배가 선착장에 밀착되게 하여 다시 탈 수 있게").
+    /// 선착장 = LandingPoint 의 부모(Dock) 로컬 좌표: 판자는 로컬 x 방향(바다 쪽 +x), 폭 z pierMinZ~pierMaxZ. 배는 로컬 x = berthX 에
+    /// 판자와 나란히(지금 뱃머리에 가까운 쪽), 판자 가장자리에서 배 반폭 + berthGap 만큼(지금 배가 있는 쪽 면).
+    /// 배 반폭은 배 충돌체에 옆에서 ClosestPoint 를 재서 구함. 부모가 없는 LandingPoint(베이스 선착장)는 그대로.
+    /// </summary>
+    void PlaceShipAtBerth(LandingPoint lp)
+    {
+        if (lp == null || !lp.snapShip || lp.transform.parent == null || ship == null) return;
+        var dock = lp.transform.parent;
+        var rb = ship.GetComponent<Rigidbody>();
+        Vector3 local = dock.InverseTransformPoint(ship.position);
+        bool plusSide = local.z > (lp.pierMinZ + lp.pierMaxZ) * 0.5f;
+        Vector3 axis = dock.right; axis.y = 0f; axis.Normalize();
+        Vector3 fwd = ship.forward; fwd.y = 0f;
+        Vector3 head = Vector3.Dot(fwd, axis) >= 0f ? axis : -axis;
+        float half = ShipHalfExtent(ship.right);
+        float halfLen = ShipHalfExtent(ship.forward);
+        // 양쪽 면 모두에서 배 밑이 충분히 깊은 가장 육지 쪽 x 를 찾고(얕으면 바다 쪽으로 1 m 씩 — 해변에 걸려 밀려나지 않게,
+        // 2026-10-06 측정: 큰섬은 판자 옆이 얕아 12 m → 20 m 로 밀려났음), 더 가까운 쪽 면을 고름(같으면 배가 있던 쪽).
+        float x0 = Mathf.Max(lp.berthX, lp.pierLandEndX + halfLen + lp.bowClearance);
+        float zP = lp.pierMaxZ + half + lp.berthGap, zM = lp.pierMinZ - half - lp.berthGap;
+        float xP = x0, xM = x0;
+        for (int k = 0; k < 40 && !DeepEnough(dock, xP, zP, halfLen, half, lp.maxSeabedY); k++) xP += 1f;
+        for (int k = 0; k < 40 && !DeepEnough(dock, xM, zM, halfLen, half, lp.maxSeabedY); k++) xM += 1f;
+        if (xP < xM - 0.5f) plusSide = true; else if (xM < xP - 0.5f) plusSide = false;
+        float z = plusSide ? zP : zM;
+        float x = plusSide ? xP : xM;
+        Vector3 w = dock.TransformPoint(new Vector3(x, 0f, z));
+        if (lp.berthAtPierHead)
+        {
+            // T 자: 판자 바다 끝에 배 옆구리 가운데를 붙이고 배는 판자와 직각(뱃머리는 지금 가까운 쪽). 얕으면 바다 쪽으로 1 m 씩.
+            Vector3 az = dock.forward; az.y = 0f; az.Normalize();
+            head = Vector3.Dot(fwd, az) >= 0f ? az : -az;
+            float zc = (lp.pierMinZ + lp.pierMaxZ) * 0.5f;
+            float xh = lp.pierSeaEndX + lp.berthGap + half;
+            for (int k = 0; k < 40; k++)
+            {
+                Vector3 c = dock.TransformPoint(new Vector3(xh, 0f, zc));
+                if (DeepEnoughAt(c, head, Vector3.Cross(Vector3.up, head), halfLen, half, lp.maxSeabedY)) break;
+                xh += 1f;
+            }
+            w = dock.TransformPoint(new Vector3(xh, 0f, zc));
+        }
+        Vector3 pos = new Vector3(w.x, ship.position.y, w.z);
+        Quaternion rot = Quaternion.LookRotation(head, Vector3.up);
+        if (rb != null) { rb.linearVelocity = Vector3.zero; rb.angularVelocity = Vector3.zero; rb.position = pos; rb.rotation = rot; }
+        ship.SetPositionAndRotation(pos, rot);
+        Physics.SyncTransforms();
+    }
+
+    /// <summary>Dock 로컬 (x, z) 에 배를 두면 배 밑(길이 2·halfLen × 폭 2·half, 3 × 7 점) 땅이 모두 maxY 보다 낮은지(터레인만 봄).</summary>
+    static bool DeepEnough(Transform dock, float x, float z, float halfLen, float half, float maxY)
+    {
+        for (int i = -3; i <= 3; i++)
+            for (int j = -1; j <= 1; j++)
+            {
+                Vector3 w = dock.TransformPoint(new Vector3(x + i * halfLen / 3f, 0f, z + j * half * 0.8f));
+                foreach (var t in Terrain.activeTerrains)
+                {
+                    var p = t.transform.position; var sz = t.terrainData.size;
+                    if (w.x < p.x || w.x > p.x + sz.x || w.z < p.z || w.z > p.z + sz.z) continue;
+                    if (t.SampleHeight(w) + p.y > maxY) return false;
+                }
+            }
+        return true;
+    }
+
+    /// <summary>월드 중심 c, 뱃머리 f·옆 r 방향으로 놓인 배(길이 2·halfLen × 폭 2·half, 7 × 3 점) 밑 터레인이 모두 maxY 보다 낮은지.</summary>
+    static bool DeepEnoughAt(Vector3 c, Vector3 f, Vector3 r, float halfLen, float half, float maxY)
+    {
+        for (int i = -3; i <= 3; i++)
+            for (int j = -1; j <= 1; j++)
+            {
+                Vector3 w = c + f * (i * halfLen / 3f) + r * (j * half * 0.8f);
+                foreach (var t in Terrain.activeTerrains)
+                {
+                    var p = t.transform.position; var sz = t.terrainData.size;
+                    if (w.x < p.x || w.x > p.x + sz.x || w.z < p.z || w.z > p.z + sz.z) continue;
+                    if (t.SampleHeight(w) + p.y > maxY) return false;
+                }
+            }
+        return true;
+    }
+
+    /// <summary>배 원점에서 dir 방향(수평) 충돌체 끝까지 거리(양쪽 중 큰 값).</summary>
+    float ShipHalfExtent(Vector3 dir)
+    {
+        Vector3 c = ship.position; Vector3 r = dir; r.y = 0f; r.Normalize();
+        float best = 0f;
+        foreach (var col in ship.GetComponentsInChildren<Collider>())
+        {
+            if (col.isTrigger || !col.enabled || col is CharacterController) continue;
+            if (!(col is BoxCollider || col is CapsuleCollider || col is SphereCollider || (col is MeshCollider && ((MeshCollider)col).convex))) continue;
+            foreach (float s in new[] { 1f, -1f })
+            {
+                Vector3 p = col.ClosestPoint(c + r * s * 60f);
+                float d = Mathf.Abs(Vector3.Dot(p - c, r));
+                if (d > best && d < 30f) best = d;
+            }
+        }
+        return best > 0.5f ? best : 6.5f;
+    }
+
+    /// <summary>걷는 캐릭터와 배 선체(볼록 충돌체) 사이 가장 가까운 수평 거리.</summary>
+    float HullDistance(Vector3 p)
+    {
+        float best = float.MaxValue;
+        foreach (var col in ship.GetComponentsInChildren<Collider>())
+        {
+            if (col.isTrigger || !col.enabled || col is CharacterController) continue;
+            if (!(col is BoxCollider || col is CapsuleCollider || col is SphereCollider || (col is MeshCollider && ((MeshCollider)col).convex))) continue;
+            Vector3 q = col.ClosestPoint(p); q.y = p.y;
+            best = Mathf.Min(best, Vector3.Distance(p, q));
+        }
+        return best;
     }
 
     public void Board()

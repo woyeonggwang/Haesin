@@ -4133,12 +4133,17 @@ MonoBehaviour:
   actionLayer: UpperBody
   drawState: Equip
   sheatheState: Unequip
-  drawDuration: 0.82
-  drawAttachTime: 0.3
-  sheatheDuration: 0.65
-  sheatheAttachTime: 0.37
+  drawDuration: 1
+  drawAttachTime: 0.26
+  sheatheDuration: 1
+  sheatheAttachTime: 0.7
   drawnParam: Drawn
   blendSpeed: 6
+  turnSheath: 1
+  turnLocalPos: {x: 0, y: 0, z: 0}
+  turnLocalEuler: {x: 32.13, y: 246.02, z: 331.64}
+  drawTurnTimes: {x: 0.04, y: 0.22, z: 0.6, w: 0.85}
+  sheatheTurnTimes: {x: 0.3, y: 0.46, z: 0.74, w: 0.92}
 --- !u!114 &554458095
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4954,12 +4959,17 @@ MonoBehaviour:
   actionLayer: UpperBody
   drawState: Equip
   sheatheState: Unequip
-  drawDuration: 0.82
-  drawAttachTime: 0.3
-  sheatheDuration: 0.65
-  sheatheAttachTime: 0.37
+  drawDuration: 1
+  drawAttachTime: 0.26
+  sheatheDuration: 1
+  sheatheAttachTime: 0.7
   drawnParam: Drawn
   blendSpeed: 6
+  turnSheath: 1
+  turnLocalPos: {x: 0, y: 0, z: 0}
+  turnLocalEuler: {x: 32.13, y: 246.02, z: 331.64}
+  drawTurnTimes: {x: 0.04, y: 0.22, z: 0.6, w: 0.85}
+  sheatheTurnTimes: {x: 0.3, y: 0.46, z: 0.74, w: 0.92}
 --- !u!114 &607351773
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -10,6 +10,8 @@ using UnityEngine;
 ///               이 상태에서 NavyCannonControl 이 포격을 한다.
 ///
 /// 탐지/이탈 거리에 히스테리시스를 두어 경계에서 상태가 떨리지 않는다.
+/// 2026-10-06(사용자 지적 "멈춘 배 주위를 돌며 멀어졌다 가까워져서야 공격 — 가까우면 측면을 보이며 공격"): Broadside 는 표적 둘레를 돌지 않고
+/// standoffDistance 근처에 멈춰 현측을 표적에 돌린 채 쏜다. 거리 오차가 holdBand 밖일 때만 표적 쪽(멀면)/바깥쪽(가까우면)으로 기울여 천천히 움직인다.
 /// </summary>
 public class NavyPanokAI : NavyShipBase
 {
@@ -30,6 +32,10 @@ public class NavyPanokAI : NavyShipBase
     public float broadsideSpeed = 1.8f;
     [Tooltip("표적에게 이보다 가까워지면 붙지 않고 거리를 벌린다(m). 판옥선은 접현전을 피한다.")]
     public float keepAwayDistance = 28f;
+    [Tooltip("교전 중 머물 거리(m). 0 이면 attackRange × 0.75.")]
+    public float standoffDistance = 0f;
+    [Tooltip("머물 거리에서 이만큼(m) 안이면 멈춰 현측만 유지한다.")]
+    public float holdBand = 12f;
 
     [Header("부스트 판단")]
     [Tooltip("추격 중 표적이 이 거리보다 멀면 부스트를 켠다(m). 가까워지면 끄고 교전 자세를 잡는다.")]
@@ -170,12 +176,21 @@ public class NavyPanokAI : NavyShipBase
         Vector3 tangentB = -tangentA;
         Vector3 desired = Vector3.Dot(fwd, tangentA) >= Vector3.Dot(fwd, tangentB) ? tangentA : tangentB;
 
+        float standoff = standoffDistance > 0f ? standoffDistance : attackRange * 0.75f;
+        float err = distanceToTarget - standoff;
+        bool hold = Mathf.Abs(err) <= holdBand;
+        if (!hold)
+        {
+            float bend = Mathf.Clamp(err / 20f, -1f, 1f) * 35f;
+            float side = Mathf.Sign(Vector3.SignedAngle(desired, toTarget, Vector3.up)); // + 면 표적 쪽으로 돌리는 방향
+            desired = Quaternion.AngleAxis(side * bend, Vector3.up) * desired;
+        }
+
         float angle = Vector3.SignedAngle(fwd, desired, Vector3.up);
         ApplySteer(angle);
 
-        // 현측을 유지한 채 천천히 전진 - 표적 주위를 도는 움직임이 된다.
         float align = Mathf.Clamp01(1f - Mathf.Abs(angle) / 90f);
-        ApplyThrust(broadsideSpeed * align);
+        if (!hold) ApplyThrust(broadsideSpeed * align);
     }
 
     void CallNearbyAllies()

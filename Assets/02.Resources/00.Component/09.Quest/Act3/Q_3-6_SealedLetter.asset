@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa09bdef1e7c9d34ba7caf1480b9e0b3, type: 3}
+  m_Name: Q_3-6_SealedLetter
+  m_EditorClassIdentifier: Assembly-CSharp::QuestData
+  questId: 3-6
+  act: "3\uB9C9"
+  title: "\uBD09\uC778\uB41C \uC11C\uC2E0"
+  giver: "\uD55C\uC724\uACB8(\uCCAD\uC7AC)"
+  summary: "\uD55C\uC724\uACB8\uC774 \uBD09\uC778\uD55C \uC11C\uC2E0\uC744 \uD55C\uC591\uC758
+    \uAD8C\uC2DC\uD5CC\uC5D0\uAC8C \uC804\uD558\uB7EC \uAC04\uB2E4."
+  onStart: []
+  introDialogue: []
+  objectives:
+  - type: 0
+    description: "\uD55C\uC724\uACB8\uC5D0\uAC8C\uC11C \uC11C\uC2E0 \uBC1B\uAE30"
+    targetId: han_yungyeom
+    faction: 3
+    count: 1
+    radius: 0
+    onBegin: []
+    onEnd: []
+    dialogue:
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\uC774 \uC11C\uC2E0\uC744 \uD55C\uC591\uC758 \uBCD1\uC870\uCC38\uD310
+        \uAD8C\uC2DC\uD5CC \uB300\uAC10\uAED8 \uC9C1\uC811 \uC804\uD574 \uC8FC\uC2DC\uC624.
+        \uB204\uAD6C\uC5D0\uAC8C\uB3C4 \uBCF4\uC774\uC9C0 \uB9D0\uACE0."
+    - speaker: "\uD61C"
+      text: "\uAC10\uC2DC\uC778\uB354\uB7EC \uC8C4\uC778\uC758 \uC11C\uC2E0\uC744
+        \uB098\uB974\uB77C\uB294 \uAC81\uB2C8\uAE4C?"
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\uADF8\uB300\uB294 \uAC10\uC2DC\uC778\uC774 \uC544\uB2C8\uC624. \u2026\uB54C\uAC00
+        \uB418\uBA74 \uC54C\uAC8C \uB420 \uAC83\uC774\uC624."
+    - speaker: "\uD55C\uC724\uACB8"
+      text: "\uAD00\uC544\uC5D0\uB294 \uB0B4\uAC00 \uC190\uC744 \uC368 \uB450\uC5C8\uC18C.
+        \uAC00\uC2DC\uC624."
+    choices: []
+    choiceFlags: []
+    spawnTemplates: []
+    keepAlive: 2
+    spawnDistance: 380
+    marker: 
+    ignoreTerritory: 1
+    escortTemplate: merchant
+    escortFaction: 2
+    escortSpeed: 4.5
+    followStartRange: 30
+    minDistance: 5
+  onComplete:
+  - type: 1
+    text: 
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  - type: 0
+    text: "\uD55C\uC724\uACB8\uC774 \uC190\uC744 \uC368 \uAD00\uAD70 \uC218\uBC30\uAC00
+      \uD480\uB838\uC2B5\uB2C8\uB2E4 \u2014 \uD55C\uC591\uC73C\uB85C"
+    faction: 1
+    value: 0
+    template: 
+    distance: 400
+    marker: 
+    ignoreTerritory: 0
+    factionOverride: -1
+    lines: []
+  outroDialogue: []
+  next: {fileID: 11400000, guid: ec296361e55875c47987342122ea82d8, type: 2}
+  branchFlag: 
+  branchNext: {fileID: 0}

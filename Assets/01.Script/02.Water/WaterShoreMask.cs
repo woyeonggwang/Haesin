@@ -33,6 +33,24 @@ public class WaterShoreMask : MonoBehaviour
     [Range(0f, 1f)] public float agitationNearShore = 0.2f;
     [Range(0f, 1f)] public float ripplesNearShore = 0.6f;
 
+    /// <summary>
+    /// 파도를 거의 없애는 구역(호수 등). 다각형(월드 XZ) 안쪽에서 가장자리부터 feather(m) 에 걸쳐 아래 값으로 낮춘다(높이지는 않음).
+    /// 육조거리 남쪽 호수는 바다와 서남쪽 입구(폭 약 140 m)로 이어져 있고 너비가 약 200 m 라,
+    /// 육지 거리만으로는 가운데가 원래 너울의 절반(폭풍우 ±10 m)이 남아 길(약 10 m) 위로 물이 올라왔음(2026-10-04).
+    /// </summary>
+    [System.Serializable]
+    public class CalmZone
+    {
+        public string name;
+        [Tooltip("구역 꼭짓점(월드 X, Z). 순서대로 잇는다.")] public Vector2[] polygon;
+        [Tooltip("가장자리에서 안쪽으로 이 거리(m)에 걸쳐 아래 값으로 바뀐다.")] public float feather = 80f;
+        [Range(0f, 1f)] public float swell = 0f;
+        [Range(0f, 1f)] public float agitation = 0.1f;
+        [Range(0f, 1f)] public float ripples = 0.5f;
+    }
+    [Header("잔잔한 물 (호수)")]
+    public CalmZone[] calmZones;
+
     [Header("결과")]
     public Texture2D bakedMask;
 
@@ -44,6 +62,25 @@ public class WaterShoreMask : MonoBehaviour
         ocean.waterMaskExtent = new Vector2(size, size);
         ocean.waterMaskOffset = center;
         ocean.waterMaskRemap = new Vector2(0f, 1f);
+    }
+
+    /// <summary>다각형 안이면 가장자리에서의 거리 / feather (0~1, smoothstep), 밖이면 0.</summary>
+    public static float CalmWeight(CalmZone cz, Vector2 p)
+    {
+        if (cz == null || cz.polygon == null || cz.polygon.Length < 3) return 0f;
+        var poly = cz.polygon;
+        bool inside = false;
+        float best = float.MaxValue;
+        for (int a = 0, b = poly.Length - 1; a < poly.Length; b = a++)
+        {
+            Vector2 pa = poly[a], pb = poly[b];
+            if (((pa.y > p.y) != (pb.y > p.y)) && (p.x < (pb.x - pa.x) * (p.y - pa.y) / (pb.y - pa.y) + pa.x)) inside = !inside;
+            Vector2 e = pb - pa;
+            float tt = Mathf.Clamp01(Vector2.Dot(p - pa, e) / Mathf.Max(1e-6f, e.sqrMagnitude));
+            best = Mathf.Min(best, (pa + e * tt - p).magnitude);
+        }
+        if (!inside) return 0f;
+        return Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(best / Mathf.Max(1f, cz.feather)));
     }
 
 #if UNITY_EDITOR
@@ -115,10 +152,25 @@ public class WaterShoreMask : MonoBehaviour
                 float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(d[k] / Mathf.Max(1f, fadeDistance)));
                 bool edge = i == 0 || j == 0 || i == n - 1 || j == n - 1; // 밖(Clamp)은 원래 파도
                 if (edge) t = 1f;
+                float vr = Mathf.Lerp(swellNearShore, 1f, t), vg = Mathf.Lerp(agitationNearShore, 1f, t), vb = Mathf.Lerp(ripplesNearShore, 1f, t);
+                if (calmZones != null && !edge)
+                {
+                    float x = center.x + (i + 0.5f) * cell - size * 0.5f;
+                    float z = center.y + (j + 0.5f) * cell - size * 0.5f;
+                    for (int zi = 0; zi < calmZones.Length; zi++)
+                    {
+                        var cz = calmZones[zi];
+                        float w = CalmWeight(cz, new Vector2(x, z));
+                        if (w <= 0f) continue;
+                        vr = Mathf.Min(vr, Mathf.Lerp(vr, cz.swell, w));
+                        vg = Mathf.Min(vg, Mathf.Lerp(vg, cz.agitation, w));
+                        vb = Mathf.Min(vb, Mathf.Lerp(vb, cz.ripples, w));
+                    }
+                }
                 px[k] = new Color32(
-                    (byte)Mathf.RoundToInt(255f * Mathf.Lerp(swellNearShore, 1f, t)),
-                    (byte)Mathf.RoundToInt(255f * Mathf.Lerp(agitationNearShore, 1f, t)),
-                    (byte)Mathf.RoundToInt(255f * Mathf.Lerp(ripplesNearShore, 1f, t)),
+                    (byte)Mathf.RoundToInt(255f * vr),
+                    (byte)Mathf.RoundToInt(255f * vg),
+                    (byte)Mathf.RoundToInt(255f * vb),
                     255);
             }
 

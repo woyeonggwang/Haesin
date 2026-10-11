@@ -9,7 +9,9 @@ public enum Faction
     /// <summary>관군. 판옥선.</summary>
     Navy,
     /// <summary>일본군. 세키부네 / 안택선.</summary>
-    Japanese
+    Japanese,
+    /// <summary>왜구(2026-10-07). 관군·일본군·플레이어 모두와 늘 적. 현상금(ReputationSystem)과 상관없음. 배는 안택선·세키부네 복제(돛이 검음).</summary>
+    Wokou
 }
 
 /// <summary>
@@ -31,6 +33,9 @@ public class ShipFaction : MonoBehaviour
 
     [Tooltip("적이 조준할 지점. 비우면 이 오브젝트의 위치를 쓴다.")]
     public Transform aimPoint;
+
+    [Tooltip("퀘스트가 띄운 배(2026-10-09): 섬 영해(FactionTerritory) 규칙을 따르지 않는다 — 남의 영해에도 들어가고, 영해 안에서도 표적이 되고 표적을 삼는다.")]
+    public bool ignoreTerritory;
 
     /// <summary>씬에서 활성 상태인 모든 배.</summary>
     public static readonly List<ShipFaction> All = new List<ShipFaction>();
@@ -59,12 +64,13 @@ public class ShipFaction : MonoBehaviour
     }
 
     /// <summary>
-    /// 상대가 나의 적인가. 관군 ↔ 일본군은 늘 적. 플레이어(해적)와 두 진영 사이는 우호도(ReputationSystem)로 정한다 —
-    /// 중립이면 서로 적이 아니다(예전엔 "나와 다른 진영이면 적" 이라 관군·일본군 모두 늘 플레이어를 공격했다).
+    /// 상대가 나의 적인가. 관군 ↔ 일본군은 늘 적. 왜구는 모두와 늘 적. 플레이어(해적)와 관군·일본군 사이는 현상금(ReputationSystem)으로 정한다 —
+    /// 현상금이 없으면(0단계) 서로 적이 아니다(예전엔 "나와 다른 진영이면 적" 이라 관군·일본군 모두 늘 플레이어를 공격했다).
     /// </summary>
     public bool IsHostileTo(ShipFaction other)
     {
         if (other == null || other == this || other.faction == faction) return false;
+        if (faction == Faction.Wokou || other.faction == Faction.Wokou) return true;
         if (faction == Faction.Pirate) return ReputationSystem.PlayerHostileWith(other.faction);
         if (other.faction == Faction.Pirate) return ReputationSystem.PlayerHostileWith(faction);
         return true;
@@ -115,7 +121,7 @@ public class ShipFaction : MonoBehaviour
     public static bool IsTargetableBy(ShipFaction attacker, ShipFaction s)
     {
         if (!IsTargetable(s)) return false;
-        if (attacker != null && FactionTerritory.ProtectsFrom(attacker.faction, s.transform.position)) return false;
+        if (attacker != null && !attacker.ignoreTerritory && !s.ignoreTerritory && FactionTerritory.ProtectsFrom(attacker.faction, s.transform.position)) return false;
         return true;
     }
 
